@@ -460,7 +460,7 @@ add_action( 'rest_api_init', function () {
     foreach ( $types as $type ) {
         register_rest_field( $type, 'acf', [
             'get_callback' => function ( array $post ): mixed {
-                $fields = get_fields( $post['id'] );
+                $fields = get_fields( $post['id'] ?? 0 );
                 return $fields ?: (object) [];
             },
             'schema' => [
