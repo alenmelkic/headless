@@ -866,13 +866,23 @@ function headless_soundcloud_fetch_tracks(): array|WP_Error {
 
     // 5. Parse the RSS XML.
     $xml_body = wp_remote_retrieve_body( $rss_response );
-    libxml_use_internal_errors( true );
-    $xml = simplexml_load_string( $xml_body );
+    $prev_libxml = libxml_use_internal_errors( true );
+    $xml         = simplexml_load_string( $xml_body );
+    libxml_clear_errors();
+    libxml_use_internal_errors( $prev_libxml );
 
     if ( ! $xml ) {
         return new WP_Error(
             'soundcloud_rss_failed',
             __( 'Failed to parse the SoundCloud RSS feed.', 'headless' ),
+            [ 'status' => 502 ]
+        );
+    }
+
+    if ( ! isset( $xml->channel ) ) {
+        return new WP_Error(
+            'soundcloud_rss_failed',
+            __( 'SoundCloud RSS feed is not a valid RSS document.', 'headless' ),
             [ 'status' => 502 ]
         );
     }
