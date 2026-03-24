@@ -2,6 +2,10 @@
 /**
  * Image Gallery Block — Render Template (ACF Block v3)
  *
+ * Variables injected by ACF Pro 6.3+:
+ *   $block      (array) Block attributes.
+ *   $is_preview (bool)  True when rendered inside the block editor.
+ *
  * @package Headless
  */
 
