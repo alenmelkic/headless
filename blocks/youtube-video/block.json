@@ -1,0 +1,18 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "acf/youtube-video",
+  "title": "YouTube Video",
+  "description": "Embed a YouTube video with optional title and caption.",
+  "category": "theme",
+  "icon": "video-alt3",
+  "keywords": ["youtube", "video", "embed"],
+  "acf": {
+    "version": 3,
+    "mode": "preview",
+    "renderTemplate": "blocks/youtube-video/render.php"
+  },
+  "supports": {
+    "anchor": true
+  }
+}
