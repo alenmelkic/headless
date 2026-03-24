@@ -71,11 +71,16 @@ REVALIDATE_SECRET        = same value as HEADLESS_REVALIDATE_SECRET
 
 #### `app/api/revalidate/route.ts`
 
-Receives a webhook from WordPress on every post save and purges the Next.js cache.
+Receives a webhook from WordPress on every post save, menu update, or Global Options save, and purges the Next.js cache.
+
+The `type` field in the payload tells you what changed:
+- `"post"` — a page/post was saved (use `body.slug` / `body.permalink`)
+- `"menu"` — a nav menu was updated (revalidate all pages using the menu)
+- `"options"` — ACF Global Options were saved (revalidate everything)
 
 ```ts
 import { NextRequest, NextResponse } from 'next/server';
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 
 export async function POST(req: NextRequest) {
   const secret = req.headers.get('x-revalidate-secret');
@@ -84,11 +89,15 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json();
-  // Revalidate by slug/path — adjust to your routing structure.
-  revalidatePath('/' + body.slug);
-  revalidatePath('/[slug]', 'page');
 
-  return NextResponse.json({ revalidated: true, slug: body.slug });
+  if (body.type === 'post') {
+    revalidatePath('/' + body.slug);
+  } else if (body.type === 'menu' || body.type === 'options') {
+    // Menu or global options changed — revalidate everything.
+    revalidatePath('/', 'layout');
+  }
+
+  return NextResponse.json({ revalidated: true, type: body.type });
 }
 ```
 
@@ -171,3 +180,67 @@ add_filter( 'headless_cors_allow_vercel', '__return_false' );
 | `headless-thumbnail` | 400×300 | yes |
 | `headless-medium` | 800×600 | no |
 | `headless-large` | 1200×900 | no |
+
+---
+
+## Next.js Checklist (easy to forget)
+
+Things that live in the Next.js app, not in this theme.
+
+### `next.config.js` — allow WordPress image domain
+
+Without this, `next/image` throws a runtime error for any image hosted on WordPress.
+
+```js
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'your-wp-site.com',
+      },
+    ],
+  },
+};
+
+module.exports = nextConfig;
+```
+
+### `app/api/disable-preview/route.ts` — exit Draft Mode
+
+Once Draft Mode is enabled (via the WP Preview button) it sticks for the entire browser session. Add this route so editors can exit it.
+
+```ts
+import { NextResponse } from 'next/server';
+import { draftMode } from 'next/headers';
+
+export async function GET() {
+  (await draftMode()).disable();
+  return NextResponse.redirect('/');
+}
+```
+
+Editors can visit `/api/disable-preview` manually, or you can add an exit banner to your layout when `draftMode().isEnabled` is true:
+
+```tsx
+// In your root layout or page component
+import { draftMode } from 'next/headers';
+
+export default async function Layout({ children }) {
+  const { isEnabled } = await draftMode();
+  return (
+    <html>
+      <body>
+        {isEnabled && (
+          <div style={{ background: '#f59e0b', padding: '8px', textAlign: 'center' }}>
+            Draft Mode active —{' '}
+            <a href="/api/disable-preview">Exit preview</a>
+          </div>
+        )}
+        {children}
+      </body>
+    </html>
+  );
+}
+```

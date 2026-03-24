@@ -697,22 +697,24 @@ function headless_get_seo_meta( WP_REST_Request $request ): WP_REST_Response|WP_
 // ---------------------------------------------------------------------------
 // 15. Revalidation Webhook
 //
-// On every post save/publish, fires a non-blocking HTTP POST to the front-end
-// revalidation endpoint so Next.js ISR / Nuxt caches are purged automatically.
+// On every post save/publish, nav menu update, or ACF Global Options save,
+// fires a non-blocking HTTP POST to the front-end revalidation endpoint so
+// Next.js ISR caches are purged automatically.
 //
 // Configure via constants in wp-config.php:
 //   define( 'HEADLESS_REVALIDATE_URL',    'https://your-frontend.com/api/revalidate' );
 //   define( 'HEADLESS_REVALIDATE_SECRET', 'your-secret' );
 // ---------------------------------------------------------------------------
 
-add_action( 'save_post', function ( int $post_id, WP_Post $post ): void {
-    if ( wp_is_post_autosave( $post_id ) || wp_is_post_revision( $post_id ) ) {
-        return;
-    }
-
-    $endpoint = defined( 'HEADLESS_REVALIDATE_URL' )
+/**
+ * Sends a non-blocking revalidation webhook to the front-end.
+ *
+ * @param array $payload JSON-encodable data to include in the request body.
+ */
+function headless_send_revalidation( array $payload ): void {
+    $endpoint = defined( 'HEADLESS_REVALIDATE_URL' ) && HEADLESS_REVALIDATE_URL
         ? HEADLESS_REVALIDATE_URL
-        : ( function () {
+        : ( function (): string {
             $frontend = defined( 'HEADLESS_FRONTEND_URL' ) ? HEADLESS_FRONTEND_URL : get_option( 'headless_frontend_url', '' );
             return $frontend ? trailingslashit( $frontend ) . 'api/revalidate' : '';
         } )();
@@ -731,21 +733,80 @@ add_action( 'save_post', function ( int $post_id, WP_Post $post ): void {
     wp_remote_post( $endpoint, [
         'method'   => 'POST',
         'headers'  => $headers,
-        'body'     => wp_json_encode( [
-            'post_id'   => $post_id,
-            'post_type' => $post->post_type,
-            'slug'      => $post->post_name,
-            'status'    => $post->post_status,
-            'permalink' => get_permalink( $post_id ),
-        ] ),
+        'body'     => wp_json_encode( $payload ),
         'timeout'  => 5,
         'blocking' => false, // fire-and-forget — don't slow down the editor save
     ] );
+}
+
+// Post save / publish.
+add_action( 'save_post', function ( int $post_id, WP_Post $post ): void {
+    if ( wp_is_post_autosave( $post_id ) || wp_is_post_revision( $post_id ) ) {
+        return;
+    }
+
+    headless_send_revalidation( [
+        'type'      => 'post',
+        'post_id'   => $post_id,
+        'post_type' => $post->post_type,
+        'slug'      => $post->post_name,
+        'status'    => $post->post_status,
+        'permalink' => get_permalink( $post_id ),
+    ] );
 }, 10, 2 );
+
+// Nav menu update — covers item add/remove/reorder and menu rename.
+add_action( 'wp_update_nav_menu', function ( int $menu_id ): void {
+    $menu      = wp_get_nav_menu_object( $menu_id );
+    $locations = array_filter( get_nav_menu_locations(), fn( int $id ): bool => $id === $menu_id );
+
+    headless_send_revalidation( [
+        'type'      => 'menu',
+        'menu_id'   => $menu_id,
+        'menu_name' => $menu ? $menu->name : '',
+        'locations' => array_keys( $locations ),
+    ] );
+} );
+
+// ACF Global Options page save.
+add_action( 'acf/save_post', function ( $post_id ): void {
+    if ( $post_id !== 'options' ) {
+        return;
+    }
+
+    headless_send_revalidation( [ 'type' => 'options' ] );
+} );
 
 
 // ---------------------------------------------------------------------------
-// 16. Noindex WP Front-End
+// 16. REST API — Cache-Control Headers
+//
+// Adds Cache-Control headers to all public GET responses so Vercel's Edge
+// Network (and other CDNs) can cache them. Authenticated requests receive
+// no-store instead.
+//
+//   s-maxage=60                — CDN caches the response for 60 seconds
+//   stale-while-revalidate=300 — CDN serves stale while fetching a fresh copy
+// ---------------------------------------------------------------------------
+
+add_filter( 'rest_post_dispatch', function ( WP_REST_Response $response, WP_REST_Server $server, WP_REST_Request $request ): WP_REST_Response {
+    if ( $request->get_method() !== 'GET' ) {
+        return $response;
+    }
+
+    if ( $request->get_header( 'authorization' ) || $request->get_header( 'x-wp-nonce' ) ) {
+        $response->header( 'Cache-Control', 'no-store' );
+        return $response;
+    }
+
+    $response->header( 'Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300' );
+
+    return $response;
+}, 10, 3 );
+
+
+// ---------------------------------------------------------------------------
+// 17. Noindex WP Front-End
 //
 // Since WordPress is used purely as a headless back-end, we tell search
 // engines to ignore all front-end pages served by WordPress itself.
@@ -762,7 +823,7 @@ add_filter( 'wp_headers', function ( array $headers ): array {
 
 
 // ---------------------------------------------------------------------------
-// 17. Allowed Blocks — Custom ACF Blocks Only
+// 18. Allowed Blocks — Custom ACF Blocks Only
 //
 // Disables every default WordPress / Gutenberg block and only exposes
 // the ACF blocks registered in /blocks/*/block.json.
@@ -795,7 +856,7 @@ add_filter( 'allowed_block_types_all', function ( array|bool $allowed, WP_Block_
 }, 10, 2 );
 
 // ---------------------------------------------------------------------------
-// 18. SoundCloud Tracks Endpoint  GET /wp-json/headless/v1/soundcloud/tracks
+// 19. SoundCloud Tracks Endpoint  GET /wp-json/headless/v1/soundcloud/tracks
 //
 // Fetches the public RSS feed for the SoundCloud channel and returns a
 // structured track list. Results are cached in a WP transient for 1 hour.
