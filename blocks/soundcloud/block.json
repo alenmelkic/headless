@@ -1,0 +1,21 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "headless/soundcloud",
+  "title": "SoundCloud",
+  "description": "Select and embed a SoundCloud track from the radio channel.",
+  "category": "theme",
+  "icon": "format-audio",
+  "keywords": ["soundcloud", "audio", "radio", "muzika"],
+  "attributes": {
+    "track_url":      { "type": "string", "default": "" },
+    "track_title":    { "type": "string", "default": "" },
+    "track_duration": { "type": "string", "default": "" },
+    "track_artwork":  { "type": "string", "default": "" }
+  },
+  "editorScript": "file:./editor.js",
+  "render": "file:./render.php",
+  "supports": {
+    "anchor": true
+  }
+}
