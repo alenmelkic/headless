@@ -49,3 +49,4 @@ wp-config.php
 
 # Git worktrees
 .worktrees/
+.claude/
