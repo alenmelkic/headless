@@ -811,49 +811,10 @@ function headless_soundcloud_fetch_tracks(): array|WP_Error {
         return $cached;
     }
 
-    // 2. Respect negative-cache: bootstrap recently failed — don't retry for 5 min.
-    if ( get_transient( 'headless_soundcloud_bootstrap_failed' ) ) {
-        return new WP_Error(
-            'soundcloud_bootstrap_failed',
-            __( 'SoundCloud channel is temporarily unavailable. Please try again shortly.', 'headless' ),
-            [ 'status' => 503 ]
-        );
-    }
+    // 2. Use the known RSS feed URL for Radio Velika Kladuša (user ID: 61105252).
+    $rss_url = 'https://feeds.soundcloud.com/users/soundcloud:users:61105252/sounds.rss';
 
-    // 3. Get stored RSS URL, or bootstrap by fetching the channel page.
-    $rss_url = get_option( 'headless_soundcloud_rss_url', '' );
-
-    if ( ! $rss_url ) {
-        $channel_url = 'https://soundcloud.com/radio-velika-kladu-a';
-        $response    = wp_remote_get( $channel_url, [ 'timeout' => 10 ] );
-
-        if ( is_wp_error( $response ) || wp_remote_retrieve_response_code( $response ) !== 200 ) {
-            set_transient( 'headless_soundcloud_bootstrap_failed', true, 300 );
-            return new WP_Error(
-                'soundcloud_bootstrap_failed',
-                __( 'Failed to reach the SoundCloud channel page.', 'headless' ),
-                [ 'status' => 503 ]
-            );
-        }
-
-        $body = wp_remote_retrieve_body( $response );
-
-        // Match <link ... type="application/rss+xml" ... href="..."> in either attribute order.
-        if ( ! preg_match( '/<link[^>]+type=["\']application\/rss\+xml["\'][^>]+href=["\']([^"\']+)["\']/', $body, $m ) &&
-             ! preg_match( '/<link[^>]+href=["\']([^"\']+)["\'][^>]+type=["\']application\/rss\+xml["\']/', $body, $m ) ) {
-            set_transient( 'headless_soundcloud_bootstrap_failed', true, 300 );
-            return new WP_Error(
-                'soundcloud_bootstrap_failed',
-                __( 'Could not find RSS feed link on the SoundCloud channel page.', 'headless' ),
-                [ 'status' => 503 ]
-            );
-        }
-
-        $rss_url = esc_url_raw( $m[1] );
-        update_option( 'headless_soundcloud_rss_url', $rss_url );
-    }
-
-    // 4. Fetch the RSS feed.
+    // 3. Fetch the RSS feed.
     $rss_response = wp_remote_get( $rss_url, [ 'timeout' => 10 ] );
 
     if ( is_wp_error( $rss_response ) || wp_remote_retrieve_response_code( $rss_response ) !== 200 ) {
@@ -864,7 +825,7 @@ function headless_soundcloud_fetch_tracks(): array|WP_Error {
         );
     }
 
-    // 5. Parse the RSS XML.
+    // 4. Parse the RSS XML.
     $xml_body = wp_remote_retrieve_body( $rss_response );
     $prev_libxml = libxml_use_internal_errors( true );
     $xml         = simplexml_load_string( $xml_body );
@@ -887,7 +848,7 @@ function headless_soundcloud_fetch_tracks(): array|WP_Error {
         );
     }
 
-    // 6. Map items to track objects.
+    // 5. Map items to track objects.
     $xml->registerXPathNamespace( 'itunes', 'http://www.itunes.com/dtds/podcast-1.0.dtd' );
 
     $tracks = [];
@@ -913,7 +874,7 @@ function headless_soundcloud_fetch_tracks(): array|WP_Error {
         ];
     }
 
-    // 7. Cache for 1 hour and return.
+    // 6. Cache for 1 hour and return.
     set_transient( 'headless_soundcloud_tracks', $tracks, HOUR_IN_SECONDS );
 
     return $tracks;

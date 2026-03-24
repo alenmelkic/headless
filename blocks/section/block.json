@@ -14,7 +14,12 @@
   },
   "supports": {
     "anchor": true,
+    "html": false,
     "align": ["wide", "full"],
-    "jsx": true
+    "jsx": true,
+    "spacing": {
+      "margin": true,
+      "padding": false
+    }
   }
 }

@@ -16,6 +16,11 @@
   "editorScript": "file:./editor.js",
   "render": "file:./render.php",
   "supports": {
-    "anchor": true
+    "anchor": true,
+    "html": false,
+    "spacing": {
+      "margin": true,
+      "padding": false
+    }
   }
 }

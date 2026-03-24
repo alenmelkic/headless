@@ -13,6 +13,11 @@
     "renderTemplate": "blocks/pdf-documents/render.php"
   },
   "supports": {
-    "anchor": true
+    "anchor": true,
+    "html": false,
+    "spacing": {
+      "margin": true,
+      "padding": false
+    }
   }
 }

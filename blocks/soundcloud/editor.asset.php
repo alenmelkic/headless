@@ -13,6 +13,7 @@ return [
         'wp-element',
         'wp-api-fetch',
         'wp-components',
+        'wp-block-editor',
     ],
     'version' => '1.0.0',
 ];

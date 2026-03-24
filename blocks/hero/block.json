@@ -14,6 +14,11 @@
   },
   "supports": {
     "anchor": true,
-    "align": ["wide", "full"]
+    "html": false,
+    "align": ["wide", "full"],
+    "spacing": {
+      "margin": true,
+      "padding": false
+    }
   }
 }

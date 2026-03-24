@@ -13,6 +13,12 @@
     "renderTemplate": "blocks/image-gallery/render.php"
   },
   "supports": {
-    "anchor": true
+    "anchor": true,
+    "html": false,
+    "align": ["wide", "full"],
+    "spacing": {
+      "margin": true,
+      "padding": false
+    }
   }
 }
