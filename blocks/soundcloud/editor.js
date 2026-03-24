@@ -6,7 +6,7 @@
  *
  * @package Headless
  */
-( function ( blocks, element, blockEditor, apiFetch, components ) {
+( function ( blocks, element, apiFetch, components ) {
     'use strict';
 
     var el         = element.createElement;
@@ -51,6 +51,9 @@
                             loading: false,
                         } );
                     } );
+            // Intentionally omitting state.tracks.length and state.loading from the dep array:
+            // the early-return guard reads them from the render closure, so they don't trigger
+            // the effect themselves. Adding them would cause an infinite fetch loop.
             }, [ state.view ] );  // re-run whenever view changes to 'list'
 
             // ---- SELECTED VIEW ----
@@ -70,6 +73,7 @@
                         attributes.track_artwork
                             ? el( 'img', {
                                 src:   attributes.track_artwork,
+                                alt:   attributes.track_title || 'SoundCloud track artwork',
                                 width:  56,
                                 height: 56,
                                 style: { objectFit: 'cover', borderRadius: '4px', flexShrink: 0 },
@@ -188,6 +192,7 @@
                                 track.artwork_url
                                     ? el( 'img', {
                                         src:    track.artwork_url,
+                                        alt:    track.title || 'SoundCloud track artwork',
                                         width:  40,
                                         height: 40,
                                         style:  { objectFit: 'cover', borderRadius: '2px', flexShrink: 0 },
@@ -226,7 +231,6 @@
 } )(
     window.wp.blocks,
     window.wp.element,
-    window.wp.blockEditor,
     window.wp.apiFetch,
     window.wp.components
 );

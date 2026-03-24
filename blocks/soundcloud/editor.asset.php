@@ -11,7 +11,6 @@ return [
     'dependencies' => [
         'wp-blocks',
         'wp-element',
-        'wp-block-editor',
         'wp-api-fetch',
         'wp-components',
     ],
