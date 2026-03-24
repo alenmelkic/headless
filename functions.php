@@ -23,6 +23,23 @@ defined( 'ABSPATH' ) || exit;
 require_once get_template_directory() . '/includes/cpt.php';
 require_once get_template_directory() . '/includes/patterns.php';
 
+
+// ---------------------------------------------------------------------------
+// ACF JSON — Field Group Sync
+//
+// Field groups are stored as JSON in /acf-json/ and committed to version
+// control. Edit fields via ACF UI → changes auto-save back to these files.
+// ---------------------------------------------------------------------------
+
+add_filter( 'acf/settings/save_json', function (): string {
+    return get_template_directory() . '/acf-json';
+} );
+
+add_filter( 'acf/settings/load_json', function ( array $paths ): array {
+    $paths[] = get_template_directory() . '/acf-json';
+    return $paths;
+} );
+
 // ---------------------------------------------------------------------------
 // 1. Theme Support
 // ---------------------------------------------------------------------------
