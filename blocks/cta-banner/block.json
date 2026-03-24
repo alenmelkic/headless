@@ -1,0 +1,19 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "acf/cta-banner",
+  "title": "CTA Banner",
+  "description": "Full-width call-to-action banner with heading, subheading, and up to two buttons.",
+  "category": "theme",
+  "icon": "megaphone",
+  "keywords": ["cta", "call to action", "banner", "button"],
+  "acf": {
+    "version": 3,
+    "mode": "preview",
+    "renderTemplate": "blocks/cta-banner/render.php"
+  },
+  "supports": {
+    "anchor": true,
+    "align": ["wide", "full"]
+  }
+}

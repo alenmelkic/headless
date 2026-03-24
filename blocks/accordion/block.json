@@ -1,0 +1,19 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "acf/accordion",
+  "title": "Accordion",
+  "description": "Collapsible accordion with repeatable question/answer pairs. Ideal for FAQs.",
+  "category": "theme",
+  "icon": "list-view",
+  "keywords": ["accordion", "faq", "collapse", "expand", "questions"],
+  "acf": {
+    "version": 3,
+    "mode": "preview",
+    "renderTemplate": "blocks/accordion/render.php"
+  },
+  "supports": {
+    "anchor": true,
+    "align": false
+  }
+}

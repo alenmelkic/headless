@@ -1,0 +1,19 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "acf/hero",
+  "title": "Hero",
+  "description": "Full-width hero section with heading, subheading, background image and CTA.",
+  "category": "theme",
+  "icon": "cover-image",
+  "keywords": ["hero", "banner", "header"],
+  "acf": {
+    "version": 3,
+    "mode": "preview",
+    "renderTemplate": "blocks/hero/render.php"
+  },
+  "supports": {
+    "anchor": true,
+    "align": ["wide", "full"]
+  }
+}

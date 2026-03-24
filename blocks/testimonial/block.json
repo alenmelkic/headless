@@ -1,0 +1,19 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "acf/testimonial",
+  "title": "Testimonial",
+  "description": "A customer quote with author name, title, photo and optional star rating.",
+  "category": "theme",
+  "icon": "format-quote",
+  "keywords": ["testimonial", "quote", "review", "customer"],
+  "acf": {
+    "version": 3,
+    "mode": "preview",
+    "renderTemplate": "blocks/testimonial/render.php"
+  },
+  "supports": {
+    "anchor": true,
+    "align": false
+  }
+}
