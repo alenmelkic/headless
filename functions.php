@@ -114,7 +114,17 @@ add_action( 'rest_api_init', function () {
 
         $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
 
-        if ( in_array( $origin, $allowed_origins, true ) ) {
+        // Exact match against the explicit allow-list.
+        $is_allowed = in_array( $origin, $allowed_origins, true );
+
+        // Also allow any Vercel preview / branch deployment (https://*.vercel.app).
+        // Covers branch deploys that get unique generated hostnames.
+        // Disable via: add_filter( 'headless_cors_allow_vercel', '__return_false' );
+        if ( ! $is_allowed && preg_match( '#^https://[a-zA-Z0-9-]+\.vercel\.app$#', $origin ) ) {
+            $is_allowed = (bool) apply_filters( 'headless_cors_allow_vercel', true, $origin );
+        }
+
+        if ( $is_allowed ) {
             header( 'Access-Control-Allow-Origin: ' . esc_url_raw( $origin ) );
             header( 'Access-Control-Allow-Credentials: true' );
         } elseif ( empty( $allowed_origins ) ) {
