@@ -106,22 +106,22 @@ add_action( 'rest_api_init', function () {
     remove_filter( 'rest_pre_serve_request', 'rest_send_cors_headers' );
 
     add_filter( 'rest_pre_serve_request', function ( $value ) {
-        $allowed_origins = apply_filters( 'headless_cors_allowed_origins', [
-            'http://localhost:3000',
-            'http://localhost:3001',
-            'http://localhost:5173',
-        ] );
+        $default_origins = [ 'http://localhost:3000', 'http://localhost:3001', 'http://localhost:5173' ];
+        if ( defined( 'HEADLESS_FRONTEND_URL' ) && HEADLESS_FRONTEND_URL ) {
+            $default_origins[] = rtrim( HEADLESS_FRONTEND_URL, '/' );
+        }
+        $allowed_origins = apply_filters( 'headless_cors_allowed_origins', $default_origins );
 
         $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
 
         if ( in_array( $origin, $allowed_origins, true ) ) {
             header( 'Access-Control-Allow-Origin: ' . esc_url_raw( $origin ) );
+            header( 'Access-Control-Allow-Credentials: true' );
         } elseif ( empty( $allowed_origins ) ) {
             header( 'Access-Control-Allow-Origin: *' );
         }
 
         header( 'Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS' );
-        header( 'Access-Control-Allow-Credentials: true' );
         header( 'Access-Control-Allow-Headers: Authorization, Content-Type, X-WP-Nonce' );
 
         return $value;
@@ -226,7 +226,6 @@ function headless_get_site_options() {
         'name'          => get_bloginfo( 'name' ),
         'description'   => get_bloginfo( 'description' ),
         'url'           => get_bloginfo( 'url' ),
-        'admin_email'   => get_bloginfo( 'admin_email' ),
         'language'      => get_bloginfo( 'language' ),
         'charset'       => get_bloginfo( 'charset' ),
         'timezone'      => wp_timezone_string(),

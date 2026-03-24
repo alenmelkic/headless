@@ -59,6 +59,6 @@ if ( $background_image ) {
     data-props="<?php echo esc_attr( wp_json_encode( $props ) ); ?>"
 >
     <div class="block-section__inner">
-        <?php echo $content; // inner blocks — already sanitised by WP ?>
+        <?php echo wp_kses_post( $content ); // inner blocks ?>
     </div>
 </section>

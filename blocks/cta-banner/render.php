@@ -48,7 +48,7 @@ $style = $background_color ? 'background-color:' . esc_attr( $background_color )
 <div
     id="<?php echo esc_attr( $block_id ); ?>"
     class="<?php echo esc_attr( implode( ' ', $classes ) ); ?>"
-    <?php if ( $style ) : ?>style="<?php echo $style; ?>"<?php endif; ?>
+    <?php if ( $style ) : ?>style="<?php echo esc_attr( $style ); ?>"<?php endif; ?>
     data-block="cta-banner"
     data-props="<?php echo esc_attr( wp_json_encode( $props ) ); ?>"
 >
