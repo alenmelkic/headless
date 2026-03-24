@@ -1,0 +1,18 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "acf/pdf-documents",
+  "title": "PDF Documents",
+  "description": "A list of downloadable PDF documents.",
+  "category": "theme",
+  "icon": "media-document",
+  "keywords": ["pdf", "document", "download", "file", "dokumenti"],
+  "acf": {
+    "version": 3,
+    "mode": "preview",
+    "renderTemplate": "blocks/pdf-documents/render.php"
+  },
+  "supports": {
+    "anchor": true
+  }
+}
