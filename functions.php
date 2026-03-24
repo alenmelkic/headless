@@ -733,3 +733,178 @@ add_filter( 'wp_headers', function ( array $headers ): array {
     $headers['X-Robots-Tag'] = 'noindex, nofollow';
     return $headers;
 } );
+
+
+// ---------------------------------------------------------------------------
+// 17. Allowed Blocks — Custom ACF Blocks Only
+//
+// Disables every default WordPress / Gutenberg block and only exposes
+// the ACF blocks registered in /blocks/*/block.json.
+//
+// Block names are read dynamically from block.json files so adding a new
+// block folder automatically makes it available — no changes needed here.
+// ---------------------------------------------------------------------------
+
+add_filter( 'allowed_block_types_all', function ( array|bool $allowed, WP_Block_Editor_Context $context ): array {
+    // Build the list of custom ACF blocks from block.json files.
+    $acf_blocks = [];
+    foreach ( glob( get_template_directory() . '/blocks/*/block.json' ) ?: [] as $manifest ) {
+        $data = json_decode( file_get_contents( $manifest ), true );
+        if ( ! empty( $data['name'] ) ) {
+            $acf_blocks[] = $data['name'];
+        }
+    }
+
+    // On standard Posts also allow core Text and Image blocks.
+    if (
+        isset( $context->post ) &&
+        $context->post instanceof WP_Post &&
+        $context->post->post_type === 'post'
+    ) {
+        return array_merge( $acf_blocks, [ 'core/paragraph', 'core/image' ] );
+    }
+
+    // Every other post type: custom ACF blocks only.
+    return $acf_blocks;
+}, 10, 2 );
+
+// ---------------------------------------------------------------------------
+// 18. SoundCloud Tracks Endpoint  GET /wp-json/headless/v1/soundcloud/tracks
+//
+// Fetches the public RSS feed for the SoundCloud channel and returns a
+// structured track list. Results are cached in a WP transient for 1 hour.
+//
+// Bootstrap: on first call the channel page is fetched to discover the RSS
+// feed URL (embedded as <link rel="alternate" type="application/rss+xml">
+// in the page <head>), which is then stored in wp_options for reuse.
+// ---------------------------------------------------------------------------
+
+add_action( 'rest_api_init', function () {
+    register_rest_route( 'headless/v1', '/soundcloud/tracks', [
+        'methods'             => WP_REST_Server::READABLE,
+        'callback'            => 'headless_get_soundcloud_tracks',
+        'permission_callback' => '__return_true',
+    ] );
+} );
+
+/**
+ * REST callback — wraps headless_soundcloud_fetch_tracks() for the REST layer.
+ */
+function headless_get_soundcloud_tracks(): WP_REST_Response|WP_Error {
+    $tracks = headless_soundcloud_fetch_tracks();
+    if ( is_wp_error( $tracks ) ) {
+        return $tracks;
+    }
+    return rest_ensure_response( $tracks );
+}
+
+/**
+ * Fetches, parses, and caches tracks from the SoundCloud channel RSS feed.
+ *
+ * @return array|WP_Error Array of track objects on success, WP_Error on failure.
+ */
+function headless_soundcloud_fetch_tracks(): array|WP_Error {
+
+    // 1. Return cached result if available.
+    $cached = get_transient( 'headless_soundcloud_tracks' );
+    if ( false !== $cached ) {
+        return $cached;
+    }
+
+    // 2. Respect negative-cache: bootstrap recently failed — don't retry for 5 min.
+    if ( get_transient( 'headless_soundcloud_bootstrap_failed' ) ) {
+        return new WP_Error(
+            'soundcloud_bootstrap_failed',
+            __( 'SoundCloud channel is temporarily unavailable. Please try again shortly.', 'headless' ),
+            [ 'status' => 503 ]
+        );
+    }
+
+    // 3. Get stored RSS URL, or bootstrap by fetching the channel page.
+    $rss_url = get_option( 'headless_soundcloud_rss_url', '' );
+
+    if ( ! $rss_url ) {
+        $channel_url = 'https://soundcloud.com/radio-velika-kladu-a';
+        $response    = wp_remote_get( $channel_url, [ 'timeout' => 10 ] );
+
+        if ( is_wp_error( $response ) || wp_remote_retrieve_response_code( $response ) !== 200 ) {
+            set_transient( 'headless_soundcloud_bootstrap_failed', true, 300 );
+            return new WP_Error(
+                'soundcloud_bootstrap_failed',
+                __( 'Failed to reach the SoundCloud channel page.', 'headless' ),
+                [ 'status' => 503 ]
+            );
+        }
+
+        $body = wp_remote_retrieve_body( $response );
+
+        // Match <link ... type="application/rss+xml" ... href="..."> in either attribute order.
+        if ( ! preg_match( '/<link[^>]+type=["\']application\/rss\+xml["\'][^>]+href=["\']([^"\']+)["\']/', $body, $m ) &&
+             ! preg_match( '/<link[^>]+href=["\']([^"\']+)["\'][^>]+type=["\']application\/rss\+xml["\']/', $body, $m ) ) {
+            set_transient( 'headless_soundcloud_bootstrap_failed', true, 300 );
+            return new WP_Error(
+                'soundcloud_bootstrap_failed',
+                __( 'Could not find RSS feed link on the SoundCloud channel page.', 'headless' ),
+                [ 'status' => 503 ]
+            );
+        }
+
+        $rss_url = esc_url_raw( $m[1] );
+        update_option( 'headless_soundcloud_rss_url', $rss_url );
+    }
+
+    // 4. Fetch the RSS feed.
+    $rss_response = wp_remote_get( $rss_url, [ 'timeout' => 10 ] );
+
+    if ( is_wp_error( $rss_response ) || wp_remote_retrieve_response_code( $rss_response ) !== 200 ) {
+        return new WP_Error(
+            'soundcloud_rss_failed',
+            __( 'Failed to fetch the SoundCloud RSS feed.', 'headless' ),
+            [ 'status' => 502 ]
+        );
+    }
+
+    // 5. Parse the RSS XML.
+    $xml_body = wp_remote_retrieve_body( $rss_response );
+    libxml_use_internal_errors( true );
+    $xml = simplexml_load_string( $xml_body );
+
+    if ( ! $xml ) {
+        return new WP_Error(
+            'soundcloud_rss_failed',
+            __( 'Failed to parse the SoundCloud RSS feed.', 'headless' ),
+            [ 'status' => 502 ]
+        );
+    }
+
+    // 6. Map items to track objects.
+    $xml->registerXPathNamespace( 'itunes', 'http://www.itunes.com/dtds/podcast-1.0.dtd' );
+
+    $tracks = [];
+
+    foreach ( $xml->channel->item as $item ) {
+        $item->registerXPathNamespace( 'itunes', 'http://www.itunes.com/dtds/podcast-1.0.dtd' );
+
+        $url = (string) $item->link;
+
+        // Skip items whose URL is not on soundcloud.com (e.g. redirect or mobile URLs).
+        if ( ! preg_match( '#^https://soundcloud\.com/#', $url ) ) {
+            continue;
+        }
+
+        $duration_nodes = $item->xpath( 'itunes:duration' );
+        $image_nodes    = $item->xpath( 'itunes:image' );
+
+        $tracks[] = [
+            'title'       => (string) $item->title,
+            'url'         => $url,
+            'duration'    => $duration_nodes ? (string) $duration_nodes[0] : '',
+            'artwork_url' => $image_nodes    ? (string) $image_nodes[0]['href'] : '',
+        ];
+    }
+
+    // 7. Cache for 1 hour and return.
+    set_transient( 'headless_soundcloud_tracks', $tracks, HOUR_IN_SECONDS );
+
+    return $tracks;
+}
