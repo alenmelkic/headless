@@ -18,6 +18,11 @@ $track_title    = $attributes['track_title']    ?? '';
 $track_duration = $attributes['track_duration'] ?? '';
 $track_artwork  = $attributes['track_artwork']  ?? '';
 
+// Validate: track_url must be https and on soundcloud.com.
+if ( $track_url && ! preg_match( '#^https://soundcloud\.com/#', $track_url ) ) {
+    $track_url = '';
+}
+
 $props = [
     'track_url'      => $track_url      ?: null,
     'track_title'    => $track_title    ?: null,

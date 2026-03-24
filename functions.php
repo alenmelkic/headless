@@ -907,9 +907,9 @@ function headless_soundcloud_fetch_tracks(): array|WP_Error {
 
         $tracks[] = [
             'title'       => (string) $item->title,
-            'url'         => $url,
+            'url'         => esc_url_raw( $url ),
             'duration'    => $duration_nodes ? (string) $duration_nodes[0] : '',
-            'artwork_url' => $image_nodes    ? (string) $image_nodes[0]['href'] : '',
+            'artwork_url' => $image_nodes    ? esc_url_raw( (string) $image_nodes[0]['href'] ) : '',
         ];
     }
 
