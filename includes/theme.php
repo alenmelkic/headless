@@ -154,10 +154,12 @@ add_filter( 'allowed_block_types_all', function ( array|bool $allowed, WP_Block_
         }
     }
 
+    $types_with_text = [ 'post', 'obavijest', 'servisna_info' ];
+
     if (
         isset( $context->post ) &&
         $context->post instanceof WP_Post &&
-        $context->post->post_type === 'post'
+        in_array( $context->post->post_type, $types_with_text, true )
     ) {
         return array_merge( $acf_blocks, [ 'core/paragraph', 'core/image' ] );
     }
