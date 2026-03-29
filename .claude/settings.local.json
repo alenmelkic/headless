@@ -17,7 +17,8 @@
       "Bash(php -l /d/WP_LocalServer/headless/app/public/wp-content/themes/headless/blocks/youtube-video/fields.php)",
       "Bash(python3 -m json.tool)",
       "Bash(php -l blocks/image-gallery/fields.php)",
-      "Bash(php -l blocks/image-gallery/render.php)"
+      "Bash(php -l blocks/image-gallery/render.php)",
+      "Bash(find d:WP_LocalServerheadlessapppublicwp-contentplugins -name *.php -maxdepth 1)"
     ]
   }
 }
