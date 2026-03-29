@@ -3,7 +3,7 @@
  * ACF Integration
  *
  * - JSON field-group sync (save/load paths → /acf-json/)
- * - Block auto-registration from /blocks/*/block.json
+ * - Block auto-registration from /blocks/{name}/block.json
  * - Global Options page registration
  * - ACF fields embedded on all public REST post-type responses
  *
