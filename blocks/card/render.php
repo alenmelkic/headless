@@ -34,7 +34,7 @@ $props = [
         : null,
     'title'       => $title,
     'description' => $description,
-    'link'        => $link ?: null,
+    'link'        => $link ? array_merge( $link, [ 'url' => esc_url_raw( $link['url'] ?? '' ) ] ) : null,
 ];
 
 // Block ID: prefer user-defined anchor, fall back to the v3 stable block hash.

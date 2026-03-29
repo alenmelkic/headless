@@ -15,9 +15,13 @@
  * @package Headless
  */
 
-$background_color = get_field( 'background_color' ); // hex string or CSS var
+$raw_background_color = get_field( 'background_color' );
+$background_color     = ( $raw_background_color && preg_match( '/^#[0-9a-fA-F]{3,8}$/', $raw_background_color ) )
+    ? $raw_background_color
+    : null;
 $background_image = get_field( 'background_image' ); // attachment ID
-$padding_size     = get_field( 'padding_size' ) ?: 'md'; // sm | md | lg
+$raw_padding_size = get_field( 'padding_size' );
+$padding_size     = in_array( $raw_padding_size, [ 'sm', 'md', 'lg' ], true ) ? $raw_padding_size : 'md';
 $full_width       = get_field( 'full_width' );
 
 $props = [

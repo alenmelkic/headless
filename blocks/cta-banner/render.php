@@ -20,16 +20,19 @@ $primary_cta_new_tab  = get_field( 'primary_cta_new_tab' );
 $secondary_cta_label  = get_field( 'secondary_cta_label' );
 $secondary_cta_url    = get_field( 'secondary_cta_url' );
 $secondary_cta_new_tab = get_field( 'secondary_cta_new_tab' );
-$background_color     = get_field( 'background_color' );
+$raw_background_color = get_field( 'background_color' );
+$background_color     = ( $raw_background_color && preg_match( '/^#[0-9a-fA-F]{3,8}$/', $raw_background_color ) )
+    ? $raw_background_color
+    : null;
 
 $props = [
     'heading'               => $heading,
     'subheading'            => $subheading,
     'primary_cta_label'     => $primary_cta_label,
-    'primary_cta_url'       => $primary_cta_url,
+    'primary_cta_url'       => $primary_cta_url ? esc_url_raw( $primary_cta_url ) : null,
     'primary_cta_new_tab'   => (bool) $primary_cta_new_tab,
     'secondary_cta_label'   => $secondary_cta_label,
-    'secondary_cta_url'     => $secondary_cta_url,
+    'secondary_cta_url'     => $secondary_cta_url ? esc_url_raw( $secondary_cta_url ) : null,
     'secondary_cta_new_tab' => (bool) $secondary_cta_new_tab,
     'background_color'      => $background_color ?: null,
 ];

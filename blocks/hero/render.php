@@ -32,7 +32,7 @@ $props = [
         ? wp_get_attachment_image_url( $background_image, 'headless-large' )
         : null,
     'cta_label'        => $cta_label,
-    'cta_url'          => $cta_url,
+    'cta_url'          => $cta_url ? esc_url_raw( $cta_url ) : null,
     'cta_new_tab'      => (bool) $cta_new_tab,
 ];
 

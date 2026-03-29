@@ -20,7 +20,7 @@ foreach ( $documents as $doc ) {
     }
     $doc_data[] = [
         'title'    => (string) ( $doc['doc_title'] ?? '' ),
-        'url'      => (string) $file['url'],
+        'url'      => esc_url_raw( (string) $file['url'] ),
         'filename' => (string) ( $file['filename'] ?? '' ),
         'filesize' => (string) ( $file['filesize'] ?? '' ), // ACF returns formatted string, e.g. "200 kB"
     ];
