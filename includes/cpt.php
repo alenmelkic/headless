@@ -5,7 +5,7 @@
  * Each CPT is optimised for:
  *  - Headless REST API  (show_in_rest, rest_base)
  *  - WPGraphQL          (show_in_graphql, graphql_single_name, graphql_plural_name)
- *  - No taxonomies      (no categories or tags attached)
+ *  - Taxonomies         (kategorija / hierarchical, oznaka / flat — shared across CPTs)
  *
  * To add a new CPT, duplicate one of the register_post_type() blocks,
  * update the slug, labels, and GraphQL names.
@@ -64,8 +64,7 @@ function headless_register_cpts(): void {
         'graphql_single_name' => 'obavijest',
         'graphql_plural_name' => 'obavijesti',
 
-        // No taxonomies — supports only core post fields
-        'taxonomies'         => [],
+        'taxonomies'         => [ 'kategorija', 'oznaka' ],
 
         'supports'           => [ 'title', 'editor', 'excerpt', 'thumbnail', 'custom-fields', 'revisions' ],
         'has_archive'        => true,
@@ -114,8 +113,7 @@ function headless_register_cpts(): void {
         'graphql_single_name' => 'servisnaInfo',
         'graphql_plural_name' => 'servisneInfo',
 
-        // No taxonomies — supports only core post fields
-        'taxonomies'         => [],
+        'taxonomies'         => [ 'kategorija', 'oznaka' ],
 
         'supports'           => [ 'title', 'editor', 'excerpt', 'thumbnail', 'custom-fields', 'revisions' ],
         'has_archive'        => true,
