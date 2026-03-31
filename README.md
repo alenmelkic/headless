@@ -24,6 +24,17 @@ acf-json/             — ACF field group JSON (auto-synced, committed to versio
 
 ---
 
+## Custom Post Types
+
+Registered via ACF JSON (`acf-json/`). Both CPTs expose data via REST and WPGraphQL, and support the full block editor including `core/paragraph` and `core/image`.
+
+| Slug | Label | GraphQL single / plural |
+|------|-------|------------------------|
+| `obavijest-o-smrti` | Obavijest | `obavijestOSmrti` / `obavijestiOSmrti` |
+| `servisne` | Servisne | `servisne` / `servisne` |
+
+---
+
 ## REST API
 
 **Base URL:** `/wp-json/headless/v1`
@@ -71,16 +82,21 @@ REVALIDATE_SECRET        = same value as HEADLESS_REVALIDATE_SECRET
 
 #### `app/api/revalidate/route.ts`
 
-Receives a webhook from WordPress on every post save, menu update, or Global Options save, and purges the Next.js cache.
+Receives a webhook from WordPress on every content change and purges the Next.js cache.
 
-The `type` field in the payload tells you what changed:
-- `"post"` — a page/post was saved (use `body.slug` / `body.permalink`)
-- `"menu"` — a nav menu was updated (revalidate all pages using the menu)
-- `"options"` — ACF Global Options were saved (revalidate everything)
+**Payload `type` values:**
+
+| `type` | `action` | Triggered by |
+|--------|----------|--------------|
+| `post` | `saved` / `trashed` / `untrashed` / `deleted` | Post save, trash, restore, permanent delete |
+| `menu` | — | Nav menu item add/remove/reorder |
+| `options` | — | ACF Global Options page save |
+| `term` | `created` / `updated` / `deleted` | Any taxonomy term change |
+| `attachment` | `added` / `updated` / `deleted` | Media library add/edit/delete |
 
 ```ts
 import { NextRequest, NextResponse } from 'next/server';
-import { revalidatePath, revalidateTag } from 'next/cache';
+import { revalidatePath } from 'next/cache';
 
 export async function POST(req: NextRequest) {
   const secret = req.headers.get('x-revalidate-secret');
@@ -92,8 +108,8 @@ export async function POST(req: NextRequest) {
 
   if (body.type === 'post') {
     revalidatePath('/' + body.slug);
-  } else if (body.type === 'menu' || body.type === 'options') {
-    // Menu or global options changed — revalidate everything.
+  } else if (body.type === 'menu' || body.type === 'options' || body.type === 'term' || body.type === 'attachment') {
+    // Global change — revalidate everything.
     revalidatePath('/', 'layout');
   }
 
