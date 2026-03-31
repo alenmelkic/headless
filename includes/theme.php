@@ -142,7 +142,7 @@ add_filter( 'wp_headers', function ( array $headers ): array {
 // Restricts the editor to custom ACF blocks only. Block names are read
 // dynamically from block.json files so adding a new block folder
 // automatically makes it available — no changes needed here.
-// On standard Posts, core/paragraph and core/image are also allowed.
+// On Posts and Pages, core/paragraph and core/image are also allowed.
 // ---------------------------------------------------------------------------
 
 add_filter( 'allowed_block_types_all', function ( array|bool $allowed, WP_Block_Editor_Context $context ): array {
@@ -154,7 +154,7 @@ add_filter( 'allowed_block_types_all', function ( array|bool $allowed, WP_Block_
         }
     }
 
-    $types_with_text = [ 'post', 'obavijest', 'servisna_info' ];
+    $types_with_text = [ 'post', 'page' ];
 
     if (
         isset( $context->post ) &&
