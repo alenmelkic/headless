@@ -1,0 +1,23 @@
+{
+    "key": "ui_options_page_analitika",
+    "title": "Analitika",
+    "active": true,
+    "menu_order": 10,
+    "page_title": "Analitika",
+    "menu_slug": "analitika",
+    "parent_slug": "podesavanja",
+    "advanced_configuration": 1,
+    "icon_url": "",
+    "menu_title": "",
+    "position": "",
+    "redirect": false,
+    "description": "",
+    "menu_icon": [],
+    "update_button": "Update",
+    "updated_message": "Options Updated",
+    "capability": "manage_options",
+    "data_storage": "options",
+    "post_id": "",
+    "autoload": 0,
+    "modified": 1743379200
+}

@@ -80,6 +80,8 @@ function headless_get_global_options(): WP_REST_Response {
         'logo',
         'logo_opis',
         'favicon',
+        'clarity_id',
+        'ga_id',
     ] );
 
     return rest_ensure_response( array_intersect_key( $all, array_flip( (array) $public_keys ) ) );

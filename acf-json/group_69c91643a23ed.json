@@ -26,7 +26,8 @@
             "max_size": "",
             "mime_types": "",
             "allow_in_bindings": 1,
-            "preview_size": "headless-thumbnail"
+            "preview_size": "headless-thumbnail",
+            "show_in_graphql": 1
         },
         {
             "key": "field_69c9171968c99",
@@ -47,7 +48,8 @@
             "allow_in_bindings": 0,
             "placeholder": "",
             "prepend": "",
-            "append": ""
+            "append": "",
+            "show_in_graphql": 1
         },
         {
             "key": "field_69c9169fabe01",
@@ -94,6 +96,8 @@
     "active": true,
     "description": "logo and favicon",
     "show_in_rest": 0,
+    "show_in_graphql": 1,
+    "graphql_field_name": "logoOptions",
     "display_title": "Logo and Favicon",
-    "modified": 1774786357
+    "modified": 1743379200
 }

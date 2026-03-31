@@ -1,0 +1,72 @@
+{
+    "key": "group_options_analitika",
+    "title": "Analitika",
+    "fields": [
+        {
+            "key": "field_clarity_project_id",
+            "label": "Microsoft Clarity Project ID",
+            "name": "clarity_id",
+            "aria-label": "",
+            "type": "text",
+            "instructions": "Enter your Microsoft Clarity Project ID (found in Clarity \u2192 Settings \u2192 Overview).",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "default_value": "",
+            "maxlength": "",
+            "allow_in_bindings": 0,
+            "placeholder": "abc123xyz0",
+            "prepend": "",
+            "append": "",
+            "show_in_graphql": 1
+        },
+        {
+            "key": "field_ga_measurement_id",
+            "label": "Google Analytics 4 Measurement ID",
+            "name": "ga_id",
+            "aria-label": "",
+            "type": "text",
+            "instructions": "Enter your GA4 Measurement ID (found in GA \u2192 Admin \u2192 Data Streams). Format: G-XXXXXXXXXX",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "default_value": "",
+            "maxlength": "",
+            "allow_in_bindings": 0,
+            "placeholder": "G-XXXXXXXXXX",
+            "prepend": "",
+            "append": "",
+            "show_in_graphql": 1
+        }
+    ],
+    "location": [
+        [
+            {
+                "param": "options_page",
+                "operator": "==",
+                "value": "analitika"
+            }
+        ]
+    ],
+    "menu_order": 0,
+    "position": "normal",
+    "style": "default",
+    "label_placement": "top",
+    "instruction_placement": "label",
+    "hide_on_screen": "",
+    "active": true,
+    "description": "Analytics integration settings (Clarity, GA4)",
+    "show_in_rest": 0,
+    "show_in_graphql": 1,
+    "graphql_field_name": "analyticsOptions",
+    "display_title": "Analitika",
+    "modified": 1743379200
+}
