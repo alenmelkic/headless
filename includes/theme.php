@@ -137,6 +137,30 @@ add_filter( 'wp_headers', function ( array $headers ): array {
 
 
 // ---------------------------------------------------------------------------
+// SVG Upload Support
+//
+// WordPress blocks SVG uploads by default. Allow them and ensure the
+// file-type check (which inspects file content) does not override the
+// extension-based allow-list above.
+// ---------------------------------------------------------------------------
+
+add_filter( 'upload_mimes', function ( array $mimes ): array {
+    $mimes['svg']  = 'image/svg+xml';
+    $mimes['svgz'] = 'image/svg+xml';
+    return $mimes;
+} );
+
+add_filter( 'wp_check_filetype_and_ext', function ( array $data, string $file, string $filename ): array {
+    $ext = strtolower( pathinfo( $filename, PATHINFO_EXTENSION ) );
+    if ( in_array( $ext, [ 'svg', 'svgz' ], true ) ) {
+        $data['ext']  = $ext;
+        $data['type'] = 'image/svg+xml';
+    }
+    return $data;
+}, 10, 3 );
+
+
+// ---------------------------------------------------------------------------
 // Allowed Block Types
 //
 // Restricts the editor to custom ACF blocks only. Block names are read

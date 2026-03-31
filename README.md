@@ -9,17 +9,28 @@ By Alen M
 ## Architecture
 
 ```
-functions.php         — All theme logic (REST routes, ACF init, CORS, SEO, preview, revalidation)
-includes/cpt.php      — Custom post types
-includes/patterns.php — Block patterns
-blocks/               — Custom blocks (one folder per block)
+functions.php              — Bootstraps all includes
+includes/settings.php      — Admin settings page (Settings → Headless) + headless_get_setting() helper
+includes/cpt.php           — Custom post types
+includes/patterns.php      — Block patterns
+includes/theme.php         — Theme setup, image sizes, editor restrictions
+includes/acf.php           — ACF JSON sync, block registration, options page
+includes/cors.php          — CORS + Cache-Control headers
+includes/rest-menus.php    — GET /headless/v1/menus/{location}
+includes/rest-options.php  — GET /headless/v1/options[/global]
+includes/rest-blocks.php   — GET /headless/v1/posts/{id}/blocks
+includes/rest-seo.php      — GET /headless/v1/seo/{id}
+includes/rest-preview.php  — Draft preview redirect + token verification
+includes/rest-soundcloud.php — GET /headless/v1/soundcloud/tracks
+includes/revalidation.php  — Next.js ISR revalidation webhook (fires on every content change)
+blocks/                    — Custom blocks (one folder per block)
   {name}/
-    block.json        — Block manifest (required)
-    render.php        — Server-side render template (required)
-    fields.php        — ACF field group registration (optional)
-    editor.js         — Editor UI script (only for native Gutenberg blocks)
-    editor.asset.php  — Script dependency manifest (only with editor.js)
-acf-json/             — ACF field group JSON (auto-synced, committed to version control)
+    block.json             — Block manifest (required)
+    render.php             — Server-side render template (required)
+    fields.php             — ACF field group registration (optional)
+    editor.js              — Editor UI script (only for native Gutenberg blocks)
+    editor.asset.php       — Script dependency manifest (only with editor.js)
+acf-json/                  — ACF field group JSON (auto-synced, committed to version control)
 ```
 
 ---
@@ -55,18 +66,49 @@ ACF custom fields are also embedded on all post-type REST responses as `"acf": {
 
 ## Vercel + Next.js Setup
 
-### 1. WordPress — `wp-config.php`
+### 1. WordPress — Headless Settings UI
 
-Add these constants (WordPress must be on a publicly accessible host):
+All connection settings are managed in the WordPress admin at **Settings → Headless**. No `wp-config.php` changes required.
+
+The page has three sections:
+
+**Active Environment** — toggle between DEV and PROD. All webhooks and preview links target the selected environment.
+
+**DEV**
+- Frontend URL — local Next.js dev server (e.g. `http://localhost:3000`)
+- Revalidate Secret — must match `REVALIDATE_SECRET` in `.env.local`
+
+**PROD**
+- Frontend URL — Vercel deployment URL (e.g. `https://your-project.vercel.app`)
+- Revalidate Secret — must match `REVALIDATE_SECRET` in Vercel environment variables
+
+**Shared**
+- Preview Secret — must match `PREVIEW_SECRET` in both `.env.local` and Vercel env vars
+
+The status panel at the top of the page shows the active environment, resolved webhook URL, and whether each secret is configured.
+
+#### wp-config.php overrides (optional)
+
+If you prefer hard-coded values (e.g. in a CI/CD pipeline), you can still define constants in `wp-config.php`. They take priority over the UI settings:
 
 ```php
-define( 'HEADLESS_FRONTEND_URL',     'https://your-project.vercel.app' );
-define( 'HEADLESS_PREVIEW_SECRET',   'random-strong-secret' );
-define( 'HEADLESS_REVALIDATE_SECRET','another-strong-secret' );
+define( 'HEADLESS_FRONTEND_URL',      'https://your-project.vercel.app' );
+define( 'HEADLESS_PREVIEW_SECRET',    'random-strong-secret' );
+define( 'HEADLESS_REVALIDATE_SECRET', 'another-strong-secret' );
 
-// Optional — derived from HEADLESS_FRONTEND_URL if omitted:
-define( 'HEADLESS_REVALIDATE_URL',   'https://your-project.vercel.app/api/revalidate' );
+// Optional — auto-derived from HEADLESS_FRONTEND_URL if omitted:
+define( 'HEADLESS_REVALIDATE_URL',    'https://your-project.vercel.app/api/revalidate' );
 ```
+
+Fields overridden by constants are shown as read-only in the UI.
+
+#### Generating secrets
+
+```bash
+openssl rand -hex 32
+```
+
+Generate one value for `REVALIDATE_SECRET` and a separate one for `PREVIEW_SECRET`.
 
 ### 2. Vercel — Environment Variables
 
@@ -153,11 +195,11 @@ export async function GET(req: NextRequest) {
 ### 4. CORS
 
 The theme automatically allows:
-- `http://localhost:3000`, `localhost:3001`, `localhost:5173` (local dev)
-- The production URL set in `HEADLESS_FRONTEND_URL`
+- `http://localhost:3000`, `localhost:3001`, `localhost:5173` (always allowed for local dev)
+- The Frontend URL configured in **Settings → Headless** for the active environment
 - All `https://*.vercel.app` preview/branch deployment URLs
 
-To disable the Vercel wildcard, add to your theme's `functions.php`:
+To disable the Vercel wildcard:
 ```php
 add_filter( 'headless_cors_allow_vercel', '__return_false' );
 ```
