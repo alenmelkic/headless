@@ -25,17 +25,15 @@ defined( 'ABSPATH' ) || exit;
 // ---------------------------------------------------------------------------
 
 add_filter( 'preview_post_link', function ( string $link, WP_Post $post ): string {
-    $frontend = defined( 'HEADLESS_FRONTEND_URL' )
-        ? HEADLESS_FRONTEND_URL
-        : get_option( 'headless_frontend_url', '' );
+    $frontend = headless_get_setting( 'frontend_url' );
 
     if ( ! $frontend ) {
         return $link;
     }
 
-    $secret = defined( 'HEADLESS_PREVIEW_SECRET' ) ? HEADLESS_PREVIEW_SECRET : '';
+    $secret = headless_get_setting( 'preview_secret' );
     if ( ! $secret ) {
-        return $link; // Cannot generate a secure preview URL without HEADLESS_PREVIEW_SECRET.
+        return $link; // Cannot generate a secure preview URL without a preview secret.
     }
 
     $issued_at = time();
@@ -82,7 +80,7 @@ function headless_verify_preview( WP_REST_Request $request ): WP_REST_Response|W
     $token     = (string) $request->get_param( 'token' );
     $issued_at = (int) $request->get_param( 'iat' );
 
-    $secret = defined( 'HEADLESS_PREVIEW_SECRET' ) ? HEADLESS_PREVIEW_SECRET : '';
+    $secret = headless_get_setting( 'preview_secret' );
     if ( ! $secret ) {
         return new WP_Error( 'preview_not_configured', __( 'Preview secret is not configured.', 'headless' ), [ 'status' => 503 ] );
     }

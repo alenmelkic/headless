@@ -154,7 +154,7 @@ add_filter( 'allowed_block_types_all', function ( array|bool $allowed, WP_Block_
         }
     }
 
-    $types_with_text = [ 'post', 'page' ];
+    $types_with_text = [ 'post', 'page', 'obavijest-o-smrti', 'servisne' ];
 
     if (
         isset( $context->post ) &&

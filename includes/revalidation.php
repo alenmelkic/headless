@@ -29,18 +29,13 @@ defined( 'ABSPATH' ) || exit;
  * @param array $payload JSON-encodable data to include in the request body.
  */
 function headless_send_revalidation( array $payload ): void {
-    $endpoint = defined( 'HEADLESS_REVALIDATE_URL' ) && HEADLESS_REVALIDATE_URL
-        ? HEADLESS_REVALIDATE_URL
-        : ( function (): string {
-            $frontend = defined( 'HEADLESS_FRONTEND_URL' ) ? HEADLESS_FRONTEND_URL : get_option( 'headless_frontend_url', '' );
-            return $frontend ? trailingslashit( $frontend ) . 'api/revalidate' : '';
-        } )();
+    $endpoint = headless_get_setting( 'revalidate_url' );
 
     if ( ! $endpoint ) {
         return;
     }
 
-    $secret  = defined( 'HEADLESS_REVALIDATE_SECRET' ) ? HEADLESS_REVALIDATE_SECRET : '';
+    $secret  = headless_get_setting( 'revalidate_secret' );
     $headers = [ 'Content-Type' => 'application/json' ];
 
     if ( $secret ) {

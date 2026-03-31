@@ -27,8 +27,9 @@ add_action( 'rest_api_init', function () {
 
     add_filter( 'rest_pre_serve_request', function ( $value ) {
         $default_origins = [ 'http://localhost:3000', 'http://localhost:3001', 'http://localhost:5173' ];
-        if ( defined( 'HEADLESS_FRONTEND_URL' ) && HEADLESS_FRONTEND_URL ) {
-            $default_origins[] = rtrim( HEADLESS_FRONTEND_URL, '/' );
+        $frontend = headless_get_setting( 'frontend_url' );
+        if ( $frontend ) {
+            $default_origins[] = rtrim( $frontend, '/' );
         }
         $allowed_origins = apply_filters( 'headless_cors_allowed_origins', $default_origins );
 
