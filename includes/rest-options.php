@@ -61,28 +61,21 @@ add_action( 'rest_api_init', function () {
 } );
 
 /**
- * Returns ACF options-page fields that are safe for public consumption.
+ * Returns theme settings stored in wp_options (logo, favicon, analytics IDs).
  *
- * Add new keys to the allowlist when you add options pages that contain
- * frontend-safe values (e.g. GA4 measurement IDs).
- * Use the 'headless_public_option_keys' filter to extend from a plugin/mu-plugin.
+ * Data is managed via WP Admin → Theme Settings and exposed here for
+ * frontends that prefer REST over GraphQL.
  *
  * @return WP_REST_Response
  */
 function headless_get_global_options(): WP_REST_Response {
-    if ( ! function_exists( 'get_fields' ) ) {
-        return rest_ensure_response( [] );
-    }
-
-    $all = get_fields( 'options' ) ?: [];
-
-    $public_keys = apply_filters( 'headless_public_option_keys', [
-        'logo',
-        'logo_opis',
-        'favicon',
-        'clarity_id',
-        'ga_id',
+    return rest_ensure_response( [
+        'logo'       => headless_theme_resolve_image( (int) get_option( 'headless_theme_logo_id',      0 ) ),
+        'logo_dark'  => headless_theme_resolve_image( (int) get_option( 'headless_theme_logo_dark_id', 0 ) ),
+        'logo_alt'   => (string) get_option( 'headless_theme_logo_alt',   '' ),
+        'logo_width' => (int) get_option( 'headless_theme_logo_width', 120 ),
+        'favicon'    => headless_theme_resolve_image( (int) get_option( 'headless_theme_favicon_id', 0 ) ),
+        'clarity_id' => (string) get_option( 'headless_theme_clarity_id', '' ),
+        'ga_id'      => (string) get_option( 'headless_theme_ga_id',      '' ),
     ] );
-
-    return rest_ensure_response( array_intersect_key( $all, array_flip( (array) $public_keys ) ) );
 }

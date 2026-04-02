@@ -67,8 +67,8 @@ add_action( 'acf/init', function () {
 // ACF Options Page
 //
 // Registers the legacy "Global Options" admin page (ACF Pro required).
-// The Podešavanja / Logo & Favicon pages are registered via ACF UI
-// and stored in /acf-json/.
+// Theme Settings (logo, favicon, analytics) live in includes/theme-settings.php
+// and use native wp_options + WPGraphQL — no ACF involved.
 // ---------------------------------------------------------------------------
 
 add_action( 'acf/init', function () {
@@ -85,6 +85,19 @@ add_action( 'acf/init', function () {
         'redirect'   => false,
     ] );
 } );
+
+
+// ---------------------------------------------------------------------------
+// Remove Stale ACF Options Pages
+//
+// The "Podešavanja" parent and "Logo & Favicon" child pages were removed
+// but may still be registered from ACF database records. Remove them here.
+// ---------------------------------------------------------------------------
+
+add_action( 'admin_menu', function () {
+    remove_menu_page( 'podesavanja' );
+    remove_submenu_page( 'podesavanja', 'logo-and-favicon' );
+}, 999 );
 
 
 // ---------------------------------------------------------------------------

@@ -37,5 +37,6 @@ require_once get_template_directory() . '/includes/rest-soundcloud.php'; // GET 
 // Integrations
 // ---------------------------------------------------------------------------
 
-require_once get_template_directory() . '/includes/settings.php';       // Admin settings page + headless_get_setting() helper
+require_once get_template_directory() . '/includes/settings.php';        // Admin settings page + headless_get_setting() helper
+require_once get_template_directory() . '/includes/theme-settings.php'; // Theme Settings: logo, favicon, analytics (WPGraphQL)
 require_once get_template_directory() . '/includes/revalidation.php';   // Next.js ISR revalidation webhook
