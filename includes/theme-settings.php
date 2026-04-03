@@ -76,6 +76,12 @@ add_action( 'admin_init', function () {
 	register_setting( 'headless_theme_logo_group',      'headless_theme_favicon_id',   [ 'sanitize_callback' => 'absint' ] );
 	register_setting( 'headless_theme_analytics_group', 'headless_theme_clarity_id', [ 'sanitize_callback' => 'sanitize_text_field' ] );
 	register_setting( 'headless_theme_analytics_group', 'headless_theme_ga_id',      [ 'sanitize_callback' => 'sanitize_text_field' ] );
+	register_setting( 'headless_theme_article_group',   'headless_theme_related_source', [
+		'sanitize_callback' => function ( $value ) {
+			return in_array( $value, [ 'category', 'tags' ], true ) ? $value : 'category';
+		},
+		'default' => 'category',
+	] );
 } );
 
 
@@ -100,7 +106,7 @@ function headless_theme_settings_render(): void {
 	}
 
 	$tab = isset( $_GET['tab'] ) ? sanitize_key( $_GET['tab'] ) : 'logo';
-	if ( ! in_array( $tab, [ 'logo', 'analytics' ], true ) ) {
+	if ( ! in_array( $tab, [ 'logo', 'analytics', 'article' ], true ) ) {
 		$tab = 'logo';
 	}
 
@@ -109,8 +115,9 @@ function headless_theme_settings_render(): void {
 	$logo_alt     = (string) get_option( 'headless_theme_logo_alt',     '' );
 	$logo_width   = (int) get_option( 'headless_theme_logo_width',   120 );
 	$favicon_id   = (int) get_option( 'headless_theme_favicon_id',   0 );
-	$clarity_id   = (string) get_option( 'headless_theme_clarity_id', '' );
-	$ga_id        = (string) get_option( 'headless_theme_ga_id',      '' );
+	$clarity_id      = (string) get_option( 'headless_theme_clarity_id', '' );
+	$ga_id           = (string) get_option( 'headless_theme_ga_id',      '' );
+	$related_source  = (string) get_option( 'headless_theme_related_source', 'category' );
 
 	$logo_src      = $logo_id      ? wp_get_attachment_image_url( $logo_id,      'medium' )    : '';
 	$logo_dark_src = $logo_dark_id ? wp_get_attachment_image_url( $logo_dark_id, 'medium' )    : '';
@@ -130,6 +137,10 @@ function headless_theme_settings_render(): void {
 			<a href="<?php echo esc_url( $base . '&tab=analytics' ); ?>"
 			   class="nav-tab <?php echo $tab === 'analytics' ? 'nav-tab-active' : ''; ?>">
 				<?php esc_html_e( 'Analytics', 'headless' ); ?>
+			</a>
+			<a href="<?php echo esc_url( $base . '&tab=article' ); ?>"
+			   class="nav-tab <?php echo $tab === 'article' ? 'nav-tab-active' : ''; ?>">
+				<?php esc_html_e( 'Article', 'headless' ); ?>
 			</a>
 		</nav>
 
@@ -223,6 +234,35 @@ function headless_theme_settings_render(): void {
 						       value="<?php echo esc_attr( $ga_id ); ?>"
 						       placeholder="G-XXXXXXXXXX" />
 						<p class="description"><?php esc_html_e( 'Found in GA → Admin → Data Streams. Format: G-XXXXXXXXXX', 'headless' ); ?></p>
+					</td>
+				</tr>
+			</table>
+			<?php submit_button( __( 'Save', 'headless' ) ); ?>
+		</form>
+
+		<?php elseif ( $tab === 'article' ) : ?>
+
+		<form method="post" action="options.php">
+			<?php settings_fields( 'headless_theme_article_group' ); ?>
+			<table class="form-table" role="presentation">
+				<tr>
+					<th scope="row">
+						<label for="headless_theme_related_source"><?php esc_html_e( 'Related Posts Source', 'headless' ); ?></label>
+					</th>
+					<td>
+						<select id="headless_theme_related_source"
+						        name="headless_theme_related_source"
+						        class="regular-text">
+							<option value="category" <?php selected( $related_source, 'category' ); ?>>
+								<?php esc_html_e( 'Category', 'headless' ); ?>
+							</option>
+							<option value="tags" <?php selected( $related_source, 'tags' ); ?>>
+								<?php esc_html_e( 'Tags', 'headless' ); ?>
+							</option>
+						</select>
+						<p class="description">
+							<?php esc_html_e( 'Choose whether related posts at the bottom of articles are based on the same category or shared tags.', 'headless' ); ?>
+						</p>
 					</td>
 				</tr>
 			</table>
@@ -330,7 +370,8 @@ add_action( 'graphql_register_types', function () {
 			'logoWidth' => [ 'type' => 'Int',                'description' => __( 'Logo display width in pixels.',         'headless' ) ],
 			'favicon'   => [ 'type' => 'ThemeSettingsImage', 'description' => __( 'Site favicon.',                         'headless' ) ],
 			'clarityId' => [ 'type' => 'String',             'description' => __( 'Microsoft Clarity project ID.',         'headless' ) ],
-			'gaId'      => [ 'type' => 'String',             'description' => __( 'Google Analytics 4 measurement ID.',    'headless' ) ],
+			'gaId'           => [ 'type' => 'String',             'description' => __( 'Google Analytics 4 measurement ID.',    'headless' ) ],
+			'relatedSource'  => [ 'type' => 'String',             'description' => __( 'Related posts source: "category" or "tags".', 'headless' ) ],
 		],
 	] );
 
@@ -345,7 +386,8 @@ add_action( 'graphql_register_types', function () {
 				'logoWidth' => (int) get_option( 'headless_theme_logo_width', 120 ),
 				'favicon'   => headless_theme_resolve_image( (int) get_option( 'headless_theme_favicon_id', 0 ) ),
 				'clarityId' => (string) get_option( 'headless_theme_clarity_id', '' ),
-				'gaId'      => (string) get_option( 'headless_theme_ga_id',      '' ),
+				'gaId'           => (string) get_option( 'headless_theme_ga_id',           '' ),
+				'relatedSource'  => (string) get_option( 'headless_theme_related_source', 'category' ),
 			];
 		},
 	] );
