@@ -51,8 +51,16 @@ add_action( 'acf/init', function () {
         return;
     }
 
+    // Blocks replaced by headless/video-popup — skip registration.
+    $disabled = [ 'youtube-video', 'facebook-video' ];
+
     foreach ( $manifests as $manifest ) {
         $block_dir = dirname( $manifest );
+
+        if ( in_array( basename( $block_dir ), $disabled, true ) ) {
+            continue;
+        }
+
         register_block_type( $block_dir );
 
         $fields_file = $block_dir . '/fields.php';

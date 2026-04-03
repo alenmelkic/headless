@@ -1,0 +1,24 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "headless/video-popup",
+  "title": "YouTube Video",
+  "description": "YouTube video with cover image. Opens in popup on frontend.",
+  "category": "theme",
+  "icon": "video-alt3",
+  "keywords": ["video", "youtube", "popup"],
+  "attributes": {
+    "videoUrl": { "type": "string", "default": "" },
+    "coverImage": { "type": "object", "default": null }
+  },
+  "editorScript": "file:./editor.js",
+  "render": "file:./render.php",
+  "supports": {
+    "anchor": true,
+    "html": false,
+    "spacing": {
+      "margin": true,
+      "padding": false
+    }
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "headless/fb-video",
+  "title": "Facebook Video",
+  "description": "Facebook video with cover image. Uses FB SDK for reliable playback.",
+  "category": "theme",
+  "icon": "facebook",
+  "keywords": ["facebook", "video", "fb", "reel"],
+  "attributes": {
+    "videoUrl": { "type": "string", "default": "" },
+    "coverImage": { "type": "object", "default": null },
+    "orientation": { "type": "string", "default": "" }
+  },
+  "editorScript": "file:./editor.js",
+  "render": "file:./render.php",
+  "supports": {
+    "anchor": true,
+    "html": false,
+    "spacing": {
+      "margin": true,
+      "padding": false
+    }
+  }
+}
