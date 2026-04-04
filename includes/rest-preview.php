@@ -53,6 +53,35 @@ add_filter( 'preview_post_link', function ( string $link, WP_Post $post ): strin
 
 
 // ---------------------------------------------------------------------------
+// Redirect "View Post" links to the headless frontend for published content
+// ---------------------------------------------------------------------------
+
+/**
+ * Rewrites a published post permalink to the headless frontend URL.
+ * All single items use flat URLs on the frontend: /{slug}
+ */
+function headless_rewrite_permalink( string $url, WP_Post|int $post ): string {
+    $frontend = headless_get_setting( 'frontend_url' );
+    if ( ! $frontend ) {
+        return $url;
+    }
+
+    $post = get_post( $post );
+    if ( ! $post || $post->post_status !== 'publish' ) {
+        return $url;
+    }
+
+    return trailingslashit( $frontend ) . $post->post_name;
+}
+
+add_filter( 'post_link',      'headless_rewrite_permalink', 10, 2 );
+add_filter( 'page_link',      function ( string $url, int $id ) {
+    return headless_rewrite_permalink( $url, $id );
+}, 10, 2 );
+add_filter( 'post_type_link', 'headless_rewrite_permalink', 10, 2 );
+
+
+// ---------------------------------------------------------------------------
 // REST Endpoint — Token Verification & Draft Content
 // ---------------------------------------------------------------------------
 
