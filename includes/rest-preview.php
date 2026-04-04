@@ -82,6 +82,82 @@ add_filter( 'post_type_link', 'headless_rewrite_permalink', 10, 2 );
 
 
 // ---------------------------------------------------------------------------
+// Admin "View" links → activate admin mode so editors see the edit button
+// ---------------------------------------------------------------------------
+
+/**
+ * Builds a frontend admin-mode URL that sets the admin_mode cookie and
+ * redirects to the post. Used only for admin-context view links.
+ */
+function headless_admin_view_url( WP_Post $post ): string {
+    $frontend = headless_get_setting( 'frontend_url' );
+    $secret   = headless_get_setting( 'preview_secret' );
+
+    if ( ! $frontend || ! $secret ) {
+        return '';
+    }
+
+    return add_query_arg(
+        [
+            'token'  => $secret,
+            'return' => '/' . $post->post_name,
+        ],
+        trailingslashit( $frontend ) . 'api/admin-mode'
+    );
+}
+
+/**
+ * Replaces the "View" link in admin post list rows with an admin-mode URL.
+ */
+function headless_admin_row_view_link( array $actions, WP_Post $post ): array {
+    if ( ! isset( $actions['view'] ) || $post->post_status !== 'publish' ) {
+        return $actions;
+    }
+
+    $url = headless_admin_view_url( $post );
+    if ( ! $url ) {
+        return $actions;
+    }
+
+    $actions['view'] = sprintf(
+        '<a href="%s" rel="bookmark" target="_blank">%s</a>',
+        esc_url( $url ),
+        __( 'Pregledaj' )
+    );
+
+    return $actions;
+}
+
+add_filter( 'post_row_actions', 'headless_admin_row_view_link', 10, 2 );
+add_filter( 'page_row_actions', 'headless_admin_row_view_link', 10, 2 );
+
+/**
+ * Adds a "View on frontend" link in the admin bar that activates admin mode.
+ */
+add_action( 'admin_bar_menu', function ( WP_Admin_Bar $bar ) {
+    $node = $bar->get_node( 'view' );
+    if ( ! $node ) {
+        return;
+    }
+
+    $post = get_post();
+    if ( ! $post || $post->post_status !== 'publish' ) {
+        return;
+    }
+
+    $url = headless_admin_view_url( $post );
+    if ( ! $url ) {
+        return;
+    }
+
+    $bar->add_node( [
+        'id'   => 'view',
+        'href' => $url,
+    ] );
+}, 999 );
+
+
+// ---------------------------------------------------------------------------
 // REST Endpoint — Token Verification & Draft Content
 // ---------------------------------------------------------------------------
 
@@ -91,8 +167,8 @@ add_action( 'rest_api_init', function () {
         'callback'            => 'headless_verify_preview',
         'permission_callback' => '__return_true',
         'args'                => [
-            'id'    => [ 'required' => true, 'validate_callback' => 'is_numeric' ],
-            'iat'   => [ 'required' => true, 'validate_callback' => 'is_numeric' ],
+            'id'    => [ 'required' => true, 'validate_callback' => fn( $v ) => is_numeric( $v ) ],
+            'iat'   => [ 'required' => true, 'validate_callback' => fn( $v ) => is_numeric( $v ) ],
             'token' => [ 'required' => true ],
         ],
     ] );
