@@ -72,9 +72,20 @@ function headless_parse_blocks_recursive( array $blocks ): array {
             'innerBlocks' => headless_parse_blocks_recursive( $block['innerBlocks'] ?? [] ),
         ];
 
-        // Surface ACF field data directly on the response object.
-        if ( str_starts_with( $block['blockName'], 'acf/' ) && ! empty( $block['attrs']['data'] ) ) {
-            $entry['fields'] = $block['attrs']['data'];
+        // Surface ACF field data on the response object.
+        // Prefer the processed data-props from render.php (which resolves
+        // attachment IDs, runs WP_Query, etc.) over the raw ACF storage.
+        if ( str_starts_with( $block['blockName'], 'acf/' ) ) {
+            if ( $entry['html'] && preg_match( '/data-props="([^"]*)"/', $entry['html'], $m ) ) {
+                $decoded = json_decode( html_entity_decode( $m[1], ENT_QUOTES, 'UTF-8' ), true );
+                if ( is_array( $decoded ) ) {
+                    $entry['fields'] = $decoded;
+                }
+            }
+            // Fallback to raw ACF data if no data-props found.
+            if ( empty( $entry['fields'] ) && ! empty( $block['attrs']['data'] ) ) {
+                $entry['fields'] = $block['attrs']['data'];
+            }
         }
 
         // Enrich core/image with actual image data from the attachment.

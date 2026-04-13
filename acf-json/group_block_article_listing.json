@@ -1,0 +1,127 @@
+{
+    "key": "group_block_article_listing",
+    "title": "Article Listing",
+    "fields": [
+        {
+            "key": "field_article_listing_layout",
+            "label": "Izgled",
+            "name": "layout",
+            "type": "select",
+            "instructions": "Odaberite vizualni raspored članaka.",
+            "required": 1,
+            "conditional_logic": 0,
+            "wrapper": { "width": "50", "class": "", "id": "" },
+            "choices": {
+                "izgled_1": "Izgled 1",
+                "izgled_2": "Izgled 2"
+            },
+            "default_value": "izgled_1",
+            "return_format": "value",
+            "multiple": 0,
+            "allow_null": 0,
+            "ui": 1,
+            "ajax": 0,
+            "placeholder": ""
+        },
+        {
+            "key": "field_article_listing_number_of_posts",
+            "label": "Broj članaka",
+            "name": "number_of_posts",
+            "type": "number",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": { "width": "50", "class": "", "id": "" },
+            "default_value": 6,
+            "min": 1,
+            "max": 12,
+            "step": 1,
+            "placeholder": "6",
+            "prepend": "",
+            "append": ""
+        },
+        {
+            "key": "field_article_listing_najnovije",
+            "label": "Najnovije",
+            "name": "najnovije",
+            "type": "true_false",
+            "instructions": "Prikaži samo najnovije članke (sortirano po datumu).",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": { "width": "33", "class": "", "id": "" },
+            "message": "Najnovije",
+            "default_value": 1,
+            "ui": 1,
+            "ui_on_text": "Da",
+            "ui_off_text": "Ne"
+        },
+        {
+            "key": "field_article_listing_category",
+            "label": "Kategorija",
+            "name": "category",
+            "type": "taxonomy",
+            "instructions": "Filtriraj po kategoriji (opcionalno).",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": { "width": "33", "class": "", "id": "" },
+            "taxonomy": "category",
+            "add_term": 0,
+            "save_terms": 0,
+            "load_terms": 0,
+            "return_format": "id",
+            "field_type": "select",
+            "allow_null": 1,
+            "multiple": 0
+        },
+        {
+            "key": "field_article_listing_tag",
+            "label": "Oznaka",
+            "name": "tag",
+            "type": "taxonomy",
+            "instructions": "Filtriraj po oznaci (opcionalno).",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": { "width": "33", "class": "", "id": "" },
+            "taxonomy": "post_tag",
+            "add_term": 0,
+            "save_terms": 0,
+            "load_terms": 0,
+            "return_format": "id",
+            "field_type": "select",
+            "allow_null": 1,
+            "multiple": 0
+        },
+        {
+            "key": "field_article_listing_author",
+            "label": "Autor",
+            "name": "author",
+            "type": "user",
+            "instructions": "Filtriraj po autoru (opcionalno).",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": { "width": "33", "class": "", "id": "" },
+            "role": "",
+            "return_format": "id",
+            "multiple": 0,
+            "allow_null": 1
+        }
+    ],
+    "location": [
+        [
+            {
+                "param": "block",
+                "operator": "==",
+                "value": "acf/article-listing"
+            }
+        ]
+    ],
+    "menu_order": 0,
+    "position": "normal",
+    "style": "default",
+    "label_placement": "top",
+    "instruction_placement": "label",
+    "hide_on_screen": "",
+    "active": true,
+    "description": "",
+    "show_in_rest": 0
+}

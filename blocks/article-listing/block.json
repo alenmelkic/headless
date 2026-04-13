@@ -1,0 +1,24 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "acf/article-listing",
+  "title": "Article Listing",
+  "description": "Displays a configurable list of articles filtered by category, tag, author, or latest posts.",
+  "category": "theme",
+  "icon": "list-view",
+  "keywords": ["articles", "posts", "vijesti", "listing", "grid"],
+  "acf": {
+    "version": 3,
+    "mode": "preview",
+    "renderTemplate": "blocks/article-listing/render.php"
+  },
+  "supports": {
+    "anchor": true,
+    "html": false,
+    "align": ["wide", "full"],
+    "spacing": {
+      "margin": true,
+      "padding": false
+    }
+  }
+}
