@@ -77,6 +77,7 @@ function headless_get_global_options(): WP_REST_Response {
         'favicon'    => headless_theme_resolve_image( (int) get_option( 'headless_theme_favicon_id', 0 ) ),
         'clarity_id' => (string) get_option( 'headless_theme_clarity_id', '' ),
         'ga_id'          => (string) get_option( 'headless_theme_ga_id',           '' ),
-        'related_source' => (string) get_option( 'headless_theme_related_source', 'category' ),
+        'related_source'    => (string) get_option( 'headless_theme_related_source', 'category' ),
+        'banner_visibility' => (array) get_option( 'headless_theme_banner_visibility', [ 'homepage', 'categories', 'single_posts', 'single_pages', 'servisne_listing', 'obavijesti_listing' ] ),
     ] );
 }

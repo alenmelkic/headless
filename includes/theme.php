@@ -190,3 +190,31 @@ add_filter( 'allowed_block_types_all', function ( array|bool $allowed, WP_Block_
 
     return $acf_blocks;
 }, 10, 2 );
+
+
+// ---------------------------------------------------------------------------
+// WPGraphQL — readingTime field on all content types
+//
+// Computed server-side from full post content so every query (list and single)
+// returns the same number. Formula: ceil(word_count / 200), minimum 1.
+// ---------------------------------------------------------------------------
+
+add_action( 'graphql_register_types', function () {
+    $post_types = [ 'Post', 'Page', 'ObavijestOSmrti', 'Servisne' ];
+
+    foreach ( $post_types as $type ) {
+        register_graphql_field( $type, 'readingTime', [
+            'type'        => 'Int',
+            'description' => __( 'Estimated reading time in minutes.', 'headless' ),
+            'resolve'     => function ( $post_model ) {
+                $post = get_post( $post_model->databaseId );
+                if ( ! $post ) {
+                    return 1;
+                }
+                $text       = wp_strip_all_tags( $post->post_content );
+                $word_count = str_word_count( $text );
+                return max( 1, (int) ceil( $word_count / 200 ) );
+            },
+        ] );
+    }
+} );

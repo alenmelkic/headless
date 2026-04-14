@@ -41,3 +41,4 @@ require_once get_template_directory() . '/includes/settings.php';        // Admi
 require_once get_template_directory() . '/includes/theme-settings.php'; // Theme Settings: logo, favicon, analytics (WPGraphQL)
 require_once get_template_directory() . '/includes/author-image.php';  // Author profile image field + WPGraphQL
 require_once get_template_directory() . '/includes/revalidation.php';   // Next.js ISR revalidation webhook
+require_once get_template_directory() . '/includes/cron-cleanup.php';  // Auto-trash servisne posts older than 15 days

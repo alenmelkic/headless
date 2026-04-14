@@ -158,6 +158,18 @@ add_action( 'acf/save_post', function ( $post_id ): void {
 
 
 // ---------------------------------------------------------------------------
+// Theme Settings (native wp_options, not ACF)
+// ---------------------------------------------------------------------------
+
+// Revalidate when any headless_theme_* option changes.
+add_action( 'updated_option', function ( string $option ): void {
+    if ( str_starts_with( $option, 'headless_theme_' ) ) {
+        headless_send_revalidation( [ 'type' => 'options', 'option' => $option ] );
+    }
+} );
+
+
+// ---------------------------------------------------------------------------
 // Terms (Categories / Tags / Custom Taxonomies)
 // ---------------------------------------------------------------------------
 

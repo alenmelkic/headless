@@ -82,6 +82,16 @@ add_action( 'admin_init', function () {
 		},
 		'default' => 'category',
 	] );
+	register_setting( 'headless_theme_banner_group', 'headless_theme_banner_visibility', [
+		'sanitize_callback' => function ( $value ) {
+			if ( ! is_array( $value ) ) {
+				return []; // no checkboxes checked
+			}
+			$allowed = [ 'homepage', 'categories', 'single_posts', 'single_pages', 'servisne_listing', 'obavijesti_listing' ];
+			return array_values( array_intersect( $value, $allowed ) );
+		},
+		'default' => [ 'homepage', 'categories', 'single_posts', 'single_pages', 'servisne_listing', 'obavijesti_listing' ],
+	] );
 } );
 
 
@@ -106,7 +116,7 @@ function headless_theme_settings_render(): void {
 	}
 
 	$tab = isset( $_GET['tab'] ) ? sanitize_key( $_GET['tab'] ) : 'logo';
-	if ( ! in_array( $tab, [ 'logo', 'analytics', 'article' ], true ) ) {
+	if ( ! in_array( $tab, [ 'logo', 'analytics', 'article', 'banner' ], true ) ) {
 		$tab = 'logo';
 	}
 
@@ -118,6 +128,10 @@ function headless_theme_settings_render(): void {
 	$clarity_id      = (string) get_option( 'headless_theme_clarity_id', '' );
 	$ga_id           = (string) get_option( 'headless_theme_ga_id',      '' );
 	$related_source  = (string) get_option( 'headless_theme_related_source', 'category' );
+	$banner_visibility = get_option( 'headless_theme_banner_visibility', [ 'homepage', 'categories', 'single_posts', 'single_pages', 'servisne_listing', 'obavijesti_listing' ] );
+	if ( ! is_array( $banner_visibility ) ) {
+		$banner_visibility = [ 'homepage', 'categories', 'single_posts', 'single_pages', 'servisne_listing', 'obavijesti_listing' ];
+	}
 
 	$logo_src      = $logo_id      ? wp_get_attachment_image_url( $logo_id,      'medium' )    : '';
 	$logo_dark_src = $logo_dark_id ? wp_get_attachment_image_url( $logo_dark_id, 'medium' )    : '';
@@ -141,6 +155,10 @@ function headless_theme_settings_render(): void {
 			<a href="<?php echo esc_url( $base . '&tab=article' ); ?>"
 			   class="nav-tab <?php echo $tab === 'article' ? 'nav-tab-active' : ''; ?>">
 				<?php esc_html_e( 'Article', 'headless' ); ?>
+			</a>
+			<a href="<?php echo esc_url( $base . '&tab=banner' ); ?>"
+			   class="nav-tab <?php echo $tab === 'banner' ? 'nav-tab-active' : ''; ?>">
+				<?php esc_html_e( 'Banner', 'headless' ); ?>
 			</a>
 		</nav>
 
@@ -269,6 +287,45 @@ function headless_theme_settings_render(): void {
 			<?php submit_button( __( 'Save', 'headless' ) ); ?>
 		</form>
 
+		<?php elseif ( $tab === 'banner' ) : ?>
+
+		<form method="post" action="options.php">
+			<?php settings_fields( 'headless_theme_banner_group' ); ?>
+			<table class="form-table" role="presentation">
+				<tr>
+					<th scope="row"><?php esc_html_e( 'Servisne Banner Visibility', 'headless' ); ?></th>
+					<td>
+						<fieldset>
+							<legend class="screen-reader-text"><span><?php esc_html_e( 'Banner Visibility', 'headless' ); ?></span></legend>
+							<?php
+							$visibility_options = [
+								'homepage'          => __( 'Homepage', 'headless' ),
+								'categories'        => __( 'Category pages', 'headless' ),
+								'single_posts'      => __( 'Single posts', 'headless' ),
+								'single_pages'      => __( 'Single pages', 'headless' ),
+								'servisne_listing'  => __( 'Servisne listing', 'headless' ),
+								'obavijesti_listing' => __( 'Obavijesti listing', 'headless' ),
+							];
+							foreach ( $visibility_options as $key => $label ) :
+							?>
+								<label style="display:block;margin-bottom:6px">
+									<input type="checkbox"
+									       name="headless_theme_banner_visibility[]"
+									       value="<?php echo esc_attr( $key ); ?>"
+									       <?php checked( in_array( $key, $banner_visibility, true ) ); ?> />
+									<?php echo esc_html( $label ); ?>
+								</label>
+							<?php endforeach; ?>
+							<p class="description" style="margin-top:8px">
+								<?php esc_html_e( 'Choose where the servisne info banner strip appears on the frontend.', 'headless' ); ?>
+							</p>
+						</fieldset>
+					</td>
+				</tr>
+			</table>
+			<?php submit_button( __( 'Save', 'headless' ) ); ?>
+		</form>
+
 		<?php endif; ?>
 
 	</div>
@@ -371,7 +428,8 @@ add_action( 'graphql_register_types', function () {
 			'favicon'   => [ 'type' => 'ThemeSettingsImage', 'description' => __( 'Site favicon.',                         'headless' ) ],
 			'clarityId' => [ 'type' => 'String',             'description' => __( 'Microsoft Clarity project ID.',         'headless' ) ],
 			'gaId'           => [ 'type' => 'String',             'description' => __( 'Google Analytics 4 measurement ID.',    'headless' ) ],
-			'relatedSource'  => [ 'type' => 'String',             'description' => __( 'Related posts source: "category" or "tags".', 'headless' ) ],
+			'relatedSource'     => [ 'type' => 'String',              'description' => __( 'Related posts source: "category" or "tags".', 'headless' ) ],
+			'bannerVisibility'  => [ 'type' => [ 'list_of' => 'String' ], 'description' => __( 'Page types where the servisne banner is visible.', 'headless' ) ],
 		],
 	] );
 
@@ -387,7 +445,8 @@ add_action( 'graphql_register_types', function () {
 				'favicon'   => headless_theme_resolve_image( (int) get_option( 'headless_theme_favicon_id', 0 ) ),
 				'clarityId' => (string) get_option( 'headless_theme_clarity_id', '' ),
 				'gaId'           => (string) get_option( 'headless_theme_ga_id',           '' ),
-				'relatedSource'  => (string) get_option( 'headless_theme_related_source', 'category' ),
+				'relatedSource'     => (string) get_option( 'headless_theme_related_source', 'category' ),
+				'bannerVisibility'  => (array) get_option( 'headless_theme_banner_visibility', [ 'homepage', 'categories', 'single_posts', 'single_pages', 'servisne_listing', 'obavijesti_listing' ] ),
 			];
 		},
 	] );
