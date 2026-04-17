@@ -168,6 +168,34 @@ add_action( 'updated_option', function ( string $option ): void {
     }
 } );
 
+// Fallback: also revalidate on Theme Settings page save-redirect (covers
+// unchanged-value saves where updated_option does not fire).
+add_action( 'admin_init', function (): void {
+    if (
+        ! isset( $_GET['settings-updated'] ) ||
+        ! isset( $_GET['page'] ) ||
+        $_GET['page'] !== 'theme-settings'
+    ) {
+        return;
+    }
+    headless_send_revalidation( [ 'type' => 'options' ] );
+} );
+
+// Revalidate marketing data whenever the Marketing admin page reloads after
+// a successful save.  The Settings API redirects back with ?settings-updated=true
+// so we detect that on the marketing page and fire the webhook once.
+// This is more reliable than updated_option which skips unchanged values.
+add_action( 'admin_init', function (): void {
+    if (
+        ! isset( $_GET['settings-updated'] ) ||
+        ! isset( $_GET['page'] ) ||
+        $_GET['page'] !== 'headless-marketing'
+    ) {
+        return;
+    }
+    headless_send_revalidation( [ 'type' => 'marketing' ] );
+} );
+
 
 // ---------------------------------------------------------------------------
 // Terms (Categories / Tags / Custom Taxonomies)
