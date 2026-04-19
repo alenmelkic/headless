@@ -84,6 +84,15 @@ add_action( 'admin_init', function () {
  * Sanitize the mali banneri repeater data.
  */
 function headless_mkt_sanitize_small_banners( $value ): string {
+	// The sanitize callback is called twice: once by options.php (receives
+	// the form array) and again inside update_option (receives the already-
+	// encoded JSON string).  If we already have a valid JSON string, return
+	// it as-is so the second pass doesn't wipe the data.
+	if ( is_string( $value ) ) {
+		$decoded = json_decode( $value, true );
+		return is_array( $decoded ) ? $value : '[]';
+	}
+
 	if ( ! is_array( $value ) ) {
 		return '[]';
 	}

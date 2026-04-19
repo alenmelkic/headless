@@ -1,0 +1,33 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "headless/mali-banneri",
+  "title": "Mali Banneri",
+  "description": "Prikazuje carousel malih marketing bannera.",
+  "category": "theme",
+  "icon": "images-alt2",
+  "keywords": ["banner", "mali", "marketing", "carousel", "slider"],
+  "attributes": {
+    "title":       { "type": "string", "default": "" },
+    "description": { "type": "string", "default": "" },
+    "ctaLabel":    { "type": "string", "default": "" },
+    "ctaUrl":      { "type": "string", "default": "" },
+    "ctaNewTab":   { "type": "boolean", "default": false }
+  },
+  "editorScript": "file:./editor.js",
+  "render": "file:./render.php",
+  "supports": {
+    "anchor": true,
+    "html": false,
+    "multiple": false,
+    "color": {
+      "background": true,
+      "text": false,
+      "gradients": true
+    },
+    "spacing": {
+      "margin": true,
+      "padding": true
+    }
+  }
+}
