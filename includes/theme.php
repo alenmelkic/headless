@@ -185,7 +185,7 @@ add_filter( 'allowed_block_types_all', function ( array|bool $allowed, WP_Block_
         $context->post instanceof WP_Post &&
         in_array( $context->post->post_type, $types_with_text, true )
     ) {
-        return array_merge( $acf_blocks, [ 'core/paragraph', 'core/image' ] );
+        return array_merge( $acf_blocks, [ 'core/paragraph', 'core/image', 'core/columns', 'core/column', 'core/group' ] );
     }
 
     return $acf_blocks;
