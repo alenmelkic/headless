@@ -83,8 +83,6 @@ add_action( 'rest_api_init', function () {
 // REST API — Expose Custom Image Sizes in Media Responses
 // ---------------------------------------------------------------------------
 
-add_filter( 'wp_get_attachment_image_src', '__return_false', 0 );
-
 add_filter( 'rest_prepare_attachment', function ( WP_REST_Response $response ): WP_REST_Response {
     $sizes = wp_get_registered_image_subsizes();
     $data  = $response->get_data();
@@ -94,30 +92,27 @@ add_filter( 'rest_prepare_attachment', function ( WP_REST_Response $response ): 
         return $response;
     }
 
-    $extra = [];
+    $existing = $data['media_details']['sizes'] ?? [];
+
     foreach ( array_keys( $sizes ) as $size ) {
+        if ( isset( $existing[ $size ] ) ) {
+            continue;
+        }
         $src = wp_get_attachment_image_src( $id, $size );
         if ( $src ) {
-            $extra[ $size ] = [
-                'url'    => $src[0],
-                'width'  => $src[1],
-                'height' => $src[2],
+            $existing[ $size ] = [
+                'source_url' => $src[0],
+                'width'      => $src[1],
+                'height'     => $src[2],
             ];
         }
     }
 
-    if ( ! empty( $extra ) ) {
-        $data['media_details']['sizes'] = array_merge(
-            $data['media_details']['sizes'] ?? [],
-            $extra
-        );
-        $response->set_data( $data );
-    }
+    $data['media_details']['sizes'] = $existing;
+    $response->set_data( $data );
 
     return $response;
 } );
-
-remove_filter( 'wp_get_attachment_image_src', '__return_false', 0 );
 
 
 // ---------------------------------------------------------------------------
