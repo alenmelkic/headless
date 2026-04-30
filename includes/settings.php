@@ -3,15 +3,17 @@
  * Headless Settings — Admin UI
  *
  * Provides a Settings > Headless page for configuring the Next.js frontend
- * connection. Supports separate Dev and Production environments.
+ * connection. Supports separate Dev, Staging, and Production environments.
  *
  * Options stored:
- *  - headless_active_env             : 'dev' | 'prod'
- *  - headless_dev_frontend_url       : e.g. http://localhost:3000
- *  - headless_dev_revalidate_secret  : matches REVALIDATE_SECRET in .env.local
- *  - headless_prod_frontend_url      : e.g. https://your-project.vercel.app
- *  - headless_prod_revalidate_secret : matches REVALIDATE_SECRET in Vercel env vars
- *  - headless_preview_secret         : shared, matches PREVIEW_SECRET in .env
+ *  - headless_active_env                : 'dev' | 'staging' | 'prod'
+ *  - headless_dev_frontend_url          : e.g. http://localhost:3000
+ *  - headless_dev_revalidate_secret     : matches REVALIDATE_SECRET in .env.local
+ *  - headless_staging_frontend_url      : e.g. https://staging.your-project.vercel.app
+ *  - headless_staging_revalidate_secret : matches REVALIDATE_SECRET in staging env vars
+ *  - headless_prod_frontend_url         : e.g. https://your-project.vercel.app
+ *  - headless_prod_revalidate_secret    : matches REVALIDATE_SECRET in Vercel env vars
+ *  - headless_preview_secret            : shared, matches PREVIEW_SECRET in .env
  *
  * wp-config.php constants still work as hard overrides:
  *  HEADLESS_FRONTEND_URL, HEADLESS_REVALIDATE_SECRET,
@@ -32,7 +34,7 @@ defined( 'ABSPATH' ) || exit;
  */
 function headless_active_env(): string {
 	$env = (string) get_option( 'headless_active_env', 'dev' );
-	return in_array( $env, [ 'dev', 'prod' ], true ) ? $env : 'dev';
+	return in_array( $env, [ 'dev', 'staging', 'prod' ], true ) ? $env : 'dev';
 }
 
 /**
@@ -102,6 +104,8 @@ add_action( 'admin_init', function () {
 		'headless_active_env',
 		'headless_dev_frontend_url',
 		'headless_dev_revalidate_secret',
+		'headless_staging_frontend_url',
+		'headless_staging_revalidate_secret',
 		'headless_prod_frontend_url',
 		'headless_prod_revalidate_secret',
 		'headless_preview_secret',
@@ -217,6 +221,11 @@ function headless_render_settings_page(): void {
 								<?php esc_html_e( 'Development', 'headless' ); ?>
 							</label>
 							<label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+								<input type="radio" name="headless_active_env" value="staging" <?php checked( $active_env, 'staging' ); ?> />
+								<?php headless_env_badge( 'staging' ); ?>
+								<?php esc_html_e( 'Staging', 'headless' ); ?>
+							</label>
+							<label style="display:flex;align-items:center;gap:8px;cursor:pointer">
 								<input type="radio" name="headless_active_env" value="prod" <?php checked( $active_env, 'prod' ); ?> />
 								<?php headless_env_badge( 'prod' ); ?>
 								<?php esc_html_e( 'Production', 'headless' ); ?>
@@ -269,6 +278,42 @@ function headless_render_settings_page(): void {
 								<code>.env.local</code>.
 							</p>
 						<?php endif; ?>
+					</td>
+				</tr>
+			</table>
+
+			<!-- Staging -->
+			<h2 style="display:flex;align-items:center;gap:8px">
+				<?php headless_env_badge( 'staging' ); ?>
+				<?php esc_html_e( 'Staging', 'headless' ); ?>
+			</h2>
+			<table class="form-table" role="presentation">
+				<tr>
+					<th scope="row">
+						<label for="headless_staging_frontend_url"><?php esc_html_e( 'Frontend URL', 'headless' ); ?></label>
+					</th>
+					<td>
+						<input type="url" id="headless_staging_frontend_url" name="headless_staging_frontend_url"
+							class="regular-text"
+							value="<?php echo esc_attr( get_option( 'headless_staging_frontend_url', '' ) ); ?>"
+							placeholder="https://staging.your-project.vercel.app" />
+						<p class="description"><?php esc_html_e( 'Your staging deployment URL.', 'headless' ); ?></p>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row">
+						<label for="headless_staging_revalidate_secret"><?php esc_html_e( 'Revalidate Secret', 'headless' ); ?></label>
+					</th>
+					<td>
+						<input type="text" id="headless_staging_revalidate_secret" name="headless_staging_revalidate_secret"
+							class="regular-text"
+							value="<?php echo esc_attr( get_option( 'headless_staging_revalidate_secret', '' ) ); ?>"
+							placeholder="<?php esc_attr_e( 'Paste REVALIDATE_SECRET from staging env vars', 'headless' ); ?>" />
+						<p class="description">
+							<?php esc_html_e( 'Must match', 'headless' ); ?>
+							<code>REVALIDATE_SECRET</code>
+							<?php esc_html_e( 'in your staging environment variables.', 'headless' ); ?>
+						</p>
 					</td>
 				</tr>
 			</table>
@@ -348,13 +393,19 @@ function headless_render_settings_page(): void {
 // Shared UI helpers
 // ---------------------------------------------------------------------------
 
-/** Renders a coloured DEV / PROD badge. */
+/** Renders a coloured DEV / STAGING / PROD badge. */
 function headless_env_badge( string $env ): void {
-	if ( $env === 'prod' ) {
-		echo '<span style="background:#00a32a;color:#fff;padding:2px 8px;border-radius:3px;font-size:11px;font-weight:700;letter-spacing:.5px">PROD</span>';
-	} else {
-		echo '<span style="background:#2271b1;color:#fff;padding:2px 8px;border-radius:3px;font-size:11px;font-weight:700;letter-spacing:.5px">DEV</span>';
-	}
+	$badges = [
+		'prod'    => [ '#00a32a', 'PROD' ],
+		'staging' => [ '#dba617', 'STAGING' ],
+		'dev'     => [ '#2271b1', 'DEV' ],
+	];
+	$badge = $badges[ $env ] ?? $badges['dev'];
+	printf(
+		'<span style="background:%s;color:#fff;padding:2px 8px;border-radius:3px;font-size:11px;font-weight:700;letter-spacing:.5px">%s</span>',
+		esc_attr( $badge[0] ),
+		esc_html( $badge[1] )
+	);
 }
 
 /** Renders a green ✓ Configured or red ⚠ warning badge. */
