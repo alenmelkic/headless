@@ -1,0 +1,24 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "acf/news-block",
+  "title": "News Block (3 kolone)",
+  "description": "Prikazuje članke u 3 kolone — 2 kolone sa karticama i 1 kolona sa listom. Sadrži naslov kategorije i opis.",
+  "category": "theme",
+  "icon": "layout",
+  "keywords": ["news", "vijesti", "grid", "kolone", "listing", "blok"],
+  "acf": {
+    "version": 3,
+    "mode": "preview",
+    "renderTemplate": "blocks/news-block/render.php"
+  },
+  "supports": {
+    "anchor": true,
+    "html": false,
+    "align": ["wide", "full"],
+    "spacing": {
+      "margin": true,
+      "padding": false
+    }
+  }
+}

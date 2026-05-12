@@ -1,30 +1,33 @@
 <?php
 /**
- * Article Listing Block — Render Template (ACF Block v3)
+ * News Block (3 kolone) — Render Template (ACF Block v3)
  *
- * Queries posts based on editor-configured filters (category, tag, author, or latest)
- * and outputs structured JSON in data-props for the headless frontend.
+ * Queries posts based on editor-configured category/tag filters and outputs
+ * structured JSON in data-props for the headless frontend.
  *
- * Variables injected by ACF Pro 6.3+:
- *   $block      (array)  Block attributes.
- *   $content    (string) Inner blocks HTML (empty for leaf blocks).
- *   $is_preview (bool)   True when rendered inside the block editor preview.
- *   $post_id    (int)    ID of the post being edited / viewed.
- *   $context    (array)  Block context from parent blocks.
+ * Layout: 2 card columns + 1 list column, with category title & description header.
  *
  * @package Headless
  */
 
-// Validate layout against allowed values.
-$layout_raw      = get_field( 'layout' ) ?: 'izgled_1';
-$layout          = in_array( $layout_raw, [ 'izgled_1', 'izgled_2' ], true ) ? $layout_raw : 'izgled_1';
-$najnovije       = get_field( 'najnovije' );
 $category        = get_field( 'category' );
 $tag             = get_field( 'tag' );
-$author          = get_field( 'author' );
 $number_of_posts = min( 12, max( 1, (int) ( get_field( 'number_of_posts' ) ?: 6 ) ) );
 
-// Build WP_Query args — filters are combinable.
+// Resolve category metadata for the header.
+$category_name = '';
+$category_desc = '';
+$category_slug = '';
+if ( $category ) {
+    $cat_obj = get_category( (int) $category );
+    if ( $cat_obj && ! is_wp_error( $cat_obj ) ) {
+        $category_name = esc_html( $cat_obj->name );
+        $category_desc = esc_html( wp_strip_all_tags( $cat_obj->description ) );
+        $category_slug = sanitize_title( $cat_obj->slug );
+    }
+}
+
+// Build WP_Query args.
 $query_args = [
     'post_type'              => 'post',
     'posts_per_page'         => $number_of_posts,
@@ -32,7 +35,7 @@ $query_args = [
     'orderby'                => 'date',
     'order'                  => 'DESC',
     'post__not_in'           => [ $post_id ],
-    'no_found_rows'          => true,   // Skip counting total rows (perf).
+    'no_found_rows'          => true,
     'update_post_term_cache' => true,
     'update_post_meta_cache' => true,
 ];
@@ -43,18 +46,14 @@ if ( $category ) {
 if ( $tag ) {
     $query_args['tag_id'] = (int) $tag;
 }
-if ( $author ) {
-    $query_args['author'] = (int) $author;
-}
 
 $query    = new WP_Query( $query_args );
 $articles = [];
 
 while ( $query->have_posts() ) {
     $query->the_post();
-    $pid       = get_the_ID();
-    $thumb_id  = get_post_thumbnail_id( $pid );
-    $author_id = (int) get_the_author_meta( 'ID' );
+    $pid      = get_the_ID();
+    $thumb_id = get_post_thumbnail_id( $pid );
 
     // Resolve featured image.
     $featured_image = null;
@@ -83,25 +82,14 @@ while ( $query->have_posts() ) {
         }
     }
 
-    // Resolve custom author image (replaces Gravatar).
-    $author_image_id = (int) get_user_meta( $author_id, 'headless_author_image_id', true );
-    $author_avatar   = null;
-    if ( $author_image_id ) {
-        $avatar_src = wp_get_attachment_image_src( $author_image_id, 'thumbnail' );
-        if ( $avatar_src ) {
-            $author_avatar = [ 'url' => esc_url( $avatar_src[0] ) ];
-        }
-    }
+    // Compute reading time.
+    $raw_content  = get_the_content();
+    $text_only    = wp_strip_all_tags( $raw_content );
+    $word_count   = str_word_count( $text_only );
+    $reading_time = max( 1, (int) ceil( $word_count / 200 ) );
 
-    // Compute reading time server-side to avoid sending full content.
-    $raw_content   = get_the_content();
-    $text_only     = wp_strip_all_tags( $raw_content );
-    $word_count    = str_word_count( $text_only );
-    $reading_time  = max( 1, (int) ceil( $word_count / 200 ) );
-
-    // Sanitize excerpt — strip tags, send plain text.
-    $excerpt_raw = get_the_excerpt();
-    $excerpt     = wp_strip_all_tags( $excerpt_raw );
+    // Sanitize excerpt.
+    $excerpt = wp_strip_all_tags( get_the_excerpt() );
 
     $articles[] = [
         'id'            => (string) $pid,
@@ -112,37 +100,29 @@ while ( $query->have_posts() ) {
         'readingTime'   => $reading_time,
         'featuredImage' => $featured_image,
         'categories'    => $categories,
-        'author'        => [
-            'name'   => esc_html( get_the_author() ),
-            'avatar' => $author_avatar,
-        ],
     ];
 }
 wp_reset_postdata();
 
 $props = [
-    'layout'   => $layout,
-    'articles' => $articles,
+    'categoryName' => $category_name,
+    'categoryDesc' => $category_desc,
+    'categorySlug' => $category_slug,
+    'articles'     => $articles,
 ];
 
 $block_id = ! empty( $block['anchor'] ) ? esc_attr( $block['anchor'] ) : $block['id'];
 $classes  = array_filter( [
     'block',
-    'block-article-listing',
+    'block-news-block',
     $block['className'] ?? '',
     ! empty( $block['align'] ) ? 'align' . $block['align'] : '',
 ] );
 
 // Build filter description for editor preview.
 $filter_parts = [];
-if ( $najnovije ) {
-    $filter_parts[] = 'Najnovije';
-}
-if ( $category ) {
-    $cat_obj = get_category( (int) $category );
-    if ( $cat_obj ) {
-        $filter_parts[] = 'Kategorija: ' . $cat_obj->name;
-    }
+if ( $category_name ) {
+    $filter_parts[] = 'Kategorija: ' . $category_name;
 }
 if ( $tag ) {
     $tag_obj = get_tag( (int) $tag );
@@ -150,27 +130,29 @@ if ( $tag ) {
         $filter_parts[] = 'Oznaka: ' . $tag_obj->name;
     }
 }
-if ( $author ) {
-    $user_obj = get_userdata( (int) $author );
-    if ( $user_obj ) {
-        $filter_parts[] = 'Autor: ' . $user_obj->display_name;
-    }
-}
 $filter_label = $filter_parts ? implode( ' + ', $filter_parts ) : 'Svi članci';
 ?>
 <section
     id="<?php echo esc_attr( $block_id ); ?>"
     class="<?php echo esc_attr( implode( ' ', $classes ) ); ?>"
-    data-block="article-listing"
+    data-block="news-block"
     data-props="<?php echo esc_attr( wp_json_encode( $props ) ); ?>"
 >
     <?php if ( $is_preview ) : ?>
         <div style="padding: 16px; background: #f9f9f9; border: 1px solid #ddd; border-radius: 8px;">
             <p style="margin: 0 0 8px; font-weight: 600; font-size: 14px;">
-                📰 Article Listing — <?php echo esc_html( $layout === 'izgled_1' ? 'Izgled 1' : 'Izgled 2' ); ?>
+                📰 News Block (3 kolone)
+            </p>
+            <p style="margin: 0 0 4px; font-size: 13px; color: #333;">
+                <?php if ( $category_name ) : ?>
+                    <strong><?php echo esc_html( $category_name ); ?></strong>
+                    <?php if ( $category_desc ) : ?>
+                        — <?php echo esc_html( $category_desc ); ?>
+                    <?php endif; ?>
+                <?php endif; ?>
             </p>
             <p style="margin: 0 0 8px; font-size: 12px; color: #666;">
-                <?php echo esc_html( $filter_label ); ?> • <?php echo count( $articles ); ?> članaka
+                <?php echo esc_html( $filter_label ); ?> &bull; <?php echo count( $articles ); ?> članaka
             </p>
             <?php if ( $articles ) : ?>
                 <ol style="margin: 0; padding-left: 20px; font-size: 13px;">
