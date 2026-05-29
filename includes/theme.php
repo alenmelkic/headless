@@ -29,7 +29,6 @@ add_action( 'after_setup_theme', function () {
         'comment-list',
         'gallery',
         'caption',
-        'script',
         'style',
     ] );
     add_theme_support( 'align-wide' );
