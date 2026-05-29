@@ -1,24 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(for block:*)",
-      "Bash(do)",
-      "Bash(echo \"=== $block/block.json ===\")",
-      "Read(//d/WP_LocalServer/headless/app/public/wp-content/themes/headless/blocks/$block/**)",
-      "Bash(__NEW_LINE_e9b26360538af455__ done:*)",
-      "Bash(echo \"=== $block/fields.php ===\")",
-      "Bash(__NEW_LINE_6faf98c6f903e1fe__ done:*)",
-      "Bash(echo \"=== $block/render.php ===\")",
-      "Bash(__NEW_LINE_11c0549b97950362__ done:*)",
-      "Bash(git -C \"d:/WP_LocalServer/headless/app/public/wp-content/themes/headless\" branch --show-current)",
-      "Bash(grep -n \"^// [-]*$\\\\|^// [0-9]\\\\+\\\\.\" \"d:/WP_LocalServer/headless/app/public/wp-content/themes/headless/.worktrees/feature/post-blocks/functions.php\")",
-      "Bash(git add:*)",
-      "Bash(git commit:*)",
-      "Bash(php -l /d/WP_LocalServer/headless/app/public/wp-content/themes/headless/blocks/youtube-video/fields.php)",
-      "Bash(python3 -m json.tool)",
-      "Bash(php -l blocks/image-gallery/fields.php)",
-      "Bash(php -l blocks/image-gallery/render.php)",
-      "Bash(find d:WP_LocalServerheadlessapppublicwp-contentplugins -name *.php -maxdepth 1)"
+      "Bash(gh auth:*)",
+      "mcp__plugin_context7_context7__resolve-library-id",
+      "mcp__plugin_context7_context7__query-docs"
     ]
   }
 }
