@@ -1,0 +1,24 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "acf/column-block-news",
+  "title": "Column Block News",
+  "description": "Prikazuje vijesti u 2-4 kolone. Svaka kolona vuče članke iz odabrane kategorije ili CPT taksonomije.",
+  "category": "theme",
+  "icon": "columns",
+  "keywords": ["columns", "kolone", "news", "vijesti", "kategorije", "listing"],
+  "acf": {
+    "version": 3,
+    "mode": "preview",
+    "renderTemplate": "blocks/column-block-news/render.php"
+  },
+  "supports": {
+    "anchor": true,
+    "html": false,
+    "align": ["wide", "full"],
+    "spacing": {
+      "margin": true,
+      "padding": false
+    }
+  }
+}

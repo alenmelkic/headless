@@ -94,8 +94,7 @@ function headless_parse_blocks_recursive( array $blocks ): array {
         // frontend can use next/image instead of raw HTML.
         if ( $block['blockName'] === 'core/image' && ! empty( $block['attrs']['id'] ) ) {
             $att_id   = (int) $block['attrs']['id'];
-            $size     = $block['attrs']['sizeSlug'] ?? 'full';
-            $img_src  = wp_get_attachment_image_src( $att_id, $size );
+            $img_src  = wp_get_attachment_image_src( $att_id, 'full' );
 
             if ( $img_src ) {
                 $entry['attrs']['url'] = $img_src[0];
