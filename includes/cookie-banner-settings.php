@@ -28,6 +28,11 @@ function headless_cookie_banner_defaults(): array {
 		'rejectLabel' => 'Odbij sve',
 		'manageLabel' => 'Upravljaj postavkama',
 		'saveLabel'   => 'Spremi postavke',
+		'embedPlaceholder' => [
+			'text'         => 'Ovaj sadržaj je blokiran zbog vaših postavki kolačića.',
+			'acceptButton' => 'Prihvati marketing kolačiće i prikaži sadržaj',
+			'manageLink'   => 'Upravljaj postavkama',
+		],
 		'categories'  => [
 			[
 				'key'         => 'necessary',
@@ -77,7 +82,7 @@ function headless_cookie_banner_sanitize( $input ): string {
 		return (string) get_option( HEADLESS_COOKIE_BANNER_OPTION, '' );
 	}
 
-	$allowed_keys = [ 'heading', 'description', 'acceptLabel', 'rejectLabel', 'manageLabel', 'saveLabel', 'categories' ];
+	$allowed_keys = [ 'heading', 'description', 'acceptLabel', 'rejectLabel', 'manageLabel', 'saveLabel', 'embedPlaceholder', 'categories' ];
 	$clean        = array_intersect_key( $data, array_flip( $allowed_keys ) );
 
 	// Sanitize scalar values.
@@ -85,6 +90,15 @@ function headless_cookie_banner_sanitize( $input ): string {
 		if ( isset( $clean[ $key ] ) ) {
 			$clean[ $key ] = sanitize_text_field( $clean[ $key ] );
 		}
+	}
+
+	// Sanitize embedPlaceholder.
+	if ( isset( $clean['embedPlaceholder'] ) && is_array( $clean['embedPlaceholder'] ) ) {
+		$clean['embedPlaceholder'] = [
+			'text'         => sanitize_text_field( $clean['embedPlaceholder']['text'] ?? '' ),
+			'acceptButton' => sanitize_text_field( $clean['embedPlaceholder']['acceptButton'] ?? '' ),
+			'manageLink'   => sanitize_text_field( $clean['embedPlaceholder']['manageLink'] ?? '' ),
+		];
 	}
 
 	// Sanitize categories.
@@ -288,6 +302,43 @@ function headless_cookie_banner_render_page(): void {
 			</fieldset>
 			<?php endforeach; ?>
 
+			<h2><?php esc_html_e( 'Embed Placeholders', 'headless' ); ?></h2>
+			<p class="description" style="margin-bottom:12px">
+				<?php esc_html_e( 'Prikazuje se umjesto YouTube, Facebook i SoundCloud embeda dok korisnik ne prihvati marketing kolačiće.', 'headless' ); ?>
+			</p>
+			<table class="form-table" role="presentation">
+				<tr>
+					<th scope="row">
+						<label for="cb_ep_text"><?php esc_html_e( 'Tekst blokiranja', 'headless' ); ?></label>
+					</th>
+					<td>
+						<input type="text" id="cb_ep_text" class="large-text"
+						       value="<?php echo esc_attr( $values['embedPlaceholder']['text'] ?? '' ); ?>"
+						       placeholder="<?php echo esc_attr( $defaults['embedPlaceholder']['text'] ); ?>" />
+					</td>
+				</tr>
+				<tr>
+					<th scope="row">
+						<label for="cb_ep_acceptButton"><?php esc_html_e( 'Gumb "Prihvati"', 'headless' ); ?></label>
+					</th>
+					<td>
+						<input type="text" id="cb_ep_acceptButton" class="regular-text"
+						       value="<?php echo esc_attr( $values['embedPlaceholder']['acceptButton'] ?? '' ); ?>"
+						       placeholder="<?php echo esc_attr( $defaults['embedPlaceholder']['acceptButton'] ); ?>" />
+					</td>
+				</tr>
+				<tr>
+					<th scope="row">
+						<label for="cb_ep_manageLink"><?php esc_html_e( 'Link "Upravljaj"', 'headless' ); ?></label>
+					</th>
+					<td>
+						<input type="text" id="cb_ep_manageLink" class="regular-text"
+						       value="<?php echo esc_attr( $values['embedPlaceholder']['manageLink'] ?? '' ); ?>"
+						       placeholder="<?php echo esc_attr( $defaults['embedPlaceholder']['manageLink'] ); ?>" />
+					</td>
+				</tr>
+			</table>
+
 			<p class="submit" style="display:flex;gap:8px;align-items:center">
 				<?php submit_button( __( 'Save Settings', 'headless' ), 'primary', 'submit', false ); ?>
 				<button type="button" class="button" id="headless-cb-reset">
@@ -295,6 +346,75 @@ function headless_cookie_banner_render_page(): void {
 				</button>
 			</p>
 		</form>
+
+		<!-- Read-only reference: cookies & services per category.
+		     Not editable — the mapping is hardcoded in Next.js consent logic.
+		     Update this table when adding/removing a third-party service. -->
+		<div style="margin-top:30px;max-width:900px">
+			<h2><?php esc_html_e( 'Kolačići i servisi po kategoriji', 'headless' ); ?></h2>
+			<p class="description" style="margin-bottom:12px">
+				<?php esc_html_e( 'Referentna tabela — prikazuje koji servisi i kolačići pripadaju svakoj kategoriji. Ova tabela je informativna i ne može se uređivati ovdje. Mapiranje je definirano u kodu (Next.js).', 'headless' ); ?>
+			</p>
+			<table class="widefat striped" style="border-collapse:collapse">
+				<thead>
+					<tr>
+						<th style="padding:10px 12px;font-weight:600"><?php esc_html_e( 'Kategorija', 'headless' ); ?></th>
+						<th style="padding:10px 12px;font-weight:600"><?php esc_html_e( 'Servis', 'headless' ); ?></th>
+						<th style="padding:10px 12px;font-weight:600"><?php esc_html_e( 'Način blokiranja', 'headless' ); ?></th>
+						<th style="padding:10px 12px;font-weight:600"><?php esc_html_e( 'Kolačići', 'headless' ); ?></th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td style="padding:8px 12px"><strong>Neophodni</strong></td>
+						<td style="padding:8px 12px">Cookie Consent</td>
+						<td style="padding:8px 12px">Uvijek aktivan</td>
+						<td style="padding:8px 12px"><code>cookie_consent</code></td>
+					</tr>
+					<tr>
+						<td style="padding:8px 12px" rowspan="2"><strong>Analitika</strong></td>
+						<td style="padding:8px 12px">Google Analytics 4</td>
+						<td style="padding:8px 12px">GTM Consent Mode</td>
+						<td style="padding:8px 12px"><code>_ga</code>, <code>_ga_*</code>, <code>_gid</code></td>
+					</tr>
+					<tr>
+						<td style="padding:8px 12px">Microsoft Clarity</td>
+						<td style="padding:8px 12px">ClarityLoader.tsx</td>
+						<td style="padding:8px 12px"><code>_clck</code>, <code>_clsk</code>, <code>MUID</code>, <code>ANONCHK</code></td>
+					</tr>
+					<tr>
+						<td style="padding:8px 12px" rowspan="4"><strong>Marketing</strong></td>
+						<td style="padding:8px 12px">Google AdSense</td>
+						<td style="padding:8px 12px">GTM Consent Mode</td>
+						<td style="padding:8px 12px"><code>IDE</code>, <code>DSID</code>, <code>test_cookie</code></td>
+					</tr>
+					<tr>
+						<td style="padding:8px 12px">YouTube embedi</td>
+						<td style="padding:8px 12px">ConsentGatedEmbed</td>
+						<td style="padding:8px 12px"><code>VISITOR_INFO1_LIVE</code>, <code>YSC</code></td>
+					</tr>
+					<tr>
+						<td style="padding:8px 12px">Facebook embedi</td>
+						<td style="padding:8px 12px">ConsentGatedEmbed</td>
+						<td style="padding:8px 12px"><code>fr</code>, <code>datr</code></td>
+					</tr>
+					<tr>
+						<td style="padding:8px 12px">SoundCloud embedi</td>
+						<td style="padding:8px 12px">ConsentGatedEmbed</td>
+						<td style="padding:8px 12px"><code>sc_at</code></td>
+					</tr>
+					<tr>
+						<td style="padding:8px 12px"><strong>Preference</strong></td>
+						<td style="padding:8px 12px">Tema (dark/light)</td>
+						<td style="padding:8px 12px">localStorage</td>
+						<td style="padding:8px 12px"><em>localStorage</em> (<code>theme</code>)</td>
+					</tr>
+				</tbody>
+			</table>
+			<p class="description" style="margin-top:8px">
+				<?php esc_html_e( 'Kada dodate ili uklonite servis, ažurirajte ovu tabelu u includes/cookie-banner-settings.php i odgovarajući kod u Next.js.', 'headless' ); ?>
+			</p>
+		</div>
 	</div>
 
 	<script>
@@ -312,6 +432,11 @@ function headless_cookie_banner_render_page(): void {
 				rejectLabel: document.getElementById('cb_rejectLabel').value,
 				manageLabel: document.getElementById('cb_manageLabel').value,
 				saveLabel:   document.getElementById('cb_saveLabel').value,
+				embedPlaceholder: {
+					text:         document.getElementById('cb_ep_text').value,
+					acceptButton: document.getElementById('cb_ep_acceptButton').value,
+					manageLink:   document.getElementById('cb_ep_manageLink').value
+				},
 				categories:  categories.map(function (key) {
 					return {
 						key:         key,
@@ -333,6 +458,9 @@ function headless_cookie_banner_render_page(): void {
 			document.getElementById('cb_rejectLabel').value = defaults.rejectLabel;
 			document.getElementById('cb_manageLabel').value = defaults.manageLabel;
 			document.getElementById('cb_saveLabel').value   = defaults.saveLabel;
+			document.getElementById('cb_ep_text').value         = defaults.embedPlaceholder.text;
+			document.getElementById('cb_ep_acceptButton').value = defaults.embedPlaceholder.acceptButton;
+			document.getElementById('cb_ep_manageLink').value   = defaults.embedPlaceholder.manageLink;
 			defaults.categories.forEach(function (cat) {
 				document.getElementById('cb_cat_' + cat.key + '_label').value       = cat.label;
 				document.getElementById('cb_cat_' + cat.key + '_description').value = cat.description;
@@ -360,6 +488,15 @@ add_action( 'graphql_register_types', function () {
 		],
 	] );
 
+	register_graphql_object_type( 'EmbedPlaceholderSettings', [
+		'description' => __( 'Embed placeholder copy shown when marketing consent is not granted.', 'headless' ),
+		'fields'      => [
+			'text'         => [ 'type' => [ 'non_null' => 'String' ], 'description' => __( 'Blocked content message.', 'headless' ) ],
+			'acceptButton' => [ 'type' => [ 'non_null' => 'String' ], 'description' => __( 'Accept marketing cookies button label.', 'headless' ) ],
+			'manageLink'   => [ 'type' => [ 'non_null' => 'String' ], 'description' => __( 'Manage settings link label.', 'headless' ) ],
+		],
+	] );
+
 	register_graphql_object_type( 'CookieBannerSettings', [
 		'description' => __( 'Cookie banner copy managed under Settings > Cookie Banner.', 'headless' ),
 		'fields'      => [
@@ -369,6 +506,10 @@ add_action( 'graphql_register_types', function () {
 			'rejectLabel' => [ 'type' => [ 'non_null' => 'String' ], 'description' => __( 'Reject all button label.', 'headless' ) ],
 			'manageLabel' => [ 'type' => [ 'non_null' => 'String' ], 'description' => __( 'Manage settings button label.', 'headless' ) ],
 			'saveLabel'   => [ 'type' => [ 'non_null' => 'String' ], 'description' => __( 'Save button label.', 'headless' ) ],
+			'embedPlaceholder' => [
+				'type'        => [ 'non_null' => 'EmbedPlaceholderSettings' ],
+				'description' => __( 'Embed placeholder copy for consent-gated embeds.', 'headless' ),
+			],
 			'categories'  => [
 				'type'        => [ 'non_null' => [ 'list_of' => [ 'non_null' => 'CookieCategoryItem' ] ] ],
 				'description' => __( 'Cookie categories.', 'headless' ),
