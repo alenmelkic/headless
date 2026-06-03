@@ -28,7 +28,7 @@ for ( $n = 1; $n <= $num_columns; $n++ ) {
 		'order'                  => 'DESC',
 		'no_found_rows'          => true,
 		'update_post_term_cache' => false,
-		'update_post_meta_cache' => false,
+		'update_post_meta_cache' => true,
 	];
 
 	switch ( $source ) {
@@ -118,11 +118,27 @@ for ( $n = 1; $n <= $num_columns; $n++ ) {
 		$query->the_post();
 		$pid = get_the_ID();
 
+		$featured_image = null;
+		$thumb_id       = get_post_thumbnail_id( $pid );
+		if ( $thumb_id ) {
+			$img_src = wp_get_attachment_image_src( $thumb_id, 'medium' );
+			$img_alt = get_post_meta( $thumb_id, '_wp_attachment_image_alt', true );
+			if ( $img_src ) {
+				$featured_image = [
+					'sourceUrl' => $img_src[0],
+					'width'     => (int) $img_src[1],
+					'height'    => (int) $img_src[2],
+					'altText'   => $img_alt ?: '',
+				];
+			}
+		}
+
 		$articles[] = [
-			'id'    => (string) $pid,
-			'slug'  => sanitize_title( get_post_field( 'post_name', $pid ) ),
-			'title' => esc_html( get_the_title() ),
-			'date'  => get_the_date( 'c' ),
+			'id'            => (string) $pid,
+			'slug'          => sanitize_title( get_post_field( 'post_name', $pid ) ),
+			'title'         => esc_html( get_the_title() ),
+			'date'          => get_the_date( 'c' ),
+			'featuredImage' => $featured_image,
 		];
 	}
 	wp_reset_postdata();

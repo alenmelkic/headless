@@ -32,6 +32,8 @@ add_action( 'after_setup_theme', function () {
         'style',
     ] );
     add_theme_support( 'align-wide' );
+    add_theme_support( 'editor-styles' );
+    add_editor_style( 'editor-style.css' );
 
     register_nav_menus( [
         'primary' => __( 'Primary Navigation', 'headless' ),
@@ -179,7 +181,20 @@ add_filter( 'allowed_block_types_all', function ( array|bool $allowed, WP_Block_
         $context->post instanceof WP_Post &&
         in_array( $context->post->post_type, $types_with_text, true )
     ) {
-        return array_merge( $acf_blocks, [ 'core/paragraph', 'core/image', 'core/columns', 'core/column', 'core/group' ] );
+        return array_merge( $acf_blocks, [
+            'core/paragraph',
+            'core/image',
+            'core/heading',
+            'core/list',
+            'core/list-item',
+            'core/quote',
+            'core/separator',
+            'core/spacer',
+            'core/table',
+            'core/columns',
+            'core/column',
+            'core/group',
+        ] );
     }
 
     return $acf_blocks;
