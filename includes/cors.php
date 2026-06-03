@@ -49,7 +49,7 @@ add_action( 'rest_api_init', function () {
         }
         // Unrecognised origins receive no Allow-Origin header (request blocked by browser).
 
-        header( 'Access-Control-Allow-Methods: GET, OPTIONS' );
+        header( 'Access-Control-Allow-Methods: GET, POST, DELETE, OPTIONS' );
         header( 'Access-Control-Allow-Headers: Authorization, Content-Type, X-WP-Nonce' );
 
         return $value;
