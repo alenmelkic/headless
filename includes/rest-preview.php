@@ -88,6 +88,9 @@ add_filter( 'post_type_link', 'headless_rewrite_permalink', 10, 2 );
 /**
  * Builds a frontend admin-mode URL that sets the admin_mode cookie and
  * redirects to the post. Used only for admin-context view links.
+ *
+ * The token is a time-limited HMAC (expires after 15 min) so the raw
+ * preview_secret is never exposed in URLs, browser history, or logs.
  */
 function headless_admin_view_url( WP_Post $post ): string {
     $frontend = headless_get_setting( 'frontend_url' );
@@ -97,9 +100,13 @@ function headless_admin_view_url( WP_Post $post ): string {
         return '';
     }
 
+    $issued_at = time();
+    $token     = hash_hmac( 'sha256', 'admin-mode|' . $issued_at, $secret );
+
     return add_query_arg(
         [
-            'token'  => $secret,
+            'token'  => $token,
+            'iat'    => $issued_at,
             'return' => '/' . $post->post_name,
         ],
         trailingslashit( $frontend ) . 'api/admin-mode'

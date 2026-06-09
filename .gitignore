@@ -51,3 +51,6 @@ wp-config.php
 .worktrees/
 .claude/
 CLAUDE.md
+
+# Composer
+composer.phar

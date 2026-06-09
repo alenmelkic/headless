@@ -135,14 +135,17 @@ add_filter( 'wp_headers', function ( array $headers ): array {
 // ---------------------------------------------------------------------------
 // SVG Upload Support
 //
-// WordPress blocks SVG uploads by default. Allow them and ensure the
-// file-type check (which inspects file content) does not override the
-// extension-based allow-list above.
+// WordPress blocks SVG uploads by default. Allow them for administrators
+// only, sanitize file contents to strip scripts/on* handlers (stored XSS),
+// and ensure the file-type check does not override the extension allow-list.
 // ---------------------------------------------------------------------------
 
+// Only allow SVG uploads for administrators.
 add_filter( 'upload_mimes', function ( array $mimes ): array {
-    $mimes['svg']  = 'image/svg+xml';
-    $mimes['svgz'] = 'image/svg+xml';
+    if ( current_user_can( 'manage_options' ) ) {
+        $mimes['svg']  = 'image/svg+xml';
+        $mimes['svgz'] = 'image/svg+xml';
+    }
     return $mimes;
 } );
 
@@ -154,6 +157,43 @@ add_filter( 'wp_check_filetype_and_ext', function ( array $data, string $file, s
     }
     return $data;
 }, 10, 3 );
+
+// Sanitize SVG contents before the file is moved to the uploads directory.
+// Strips <script>, on* handlers, xlink:href to data/javascript URIs, etc.
+add_filter( 'wp_handle_upload_prefilter', function ( array $file ): array {
+    if ( $file['type'] !== 'image/svg+xml' ) {
+        return $file;
+    }
+
+    $contents = file_get_contents( $file['tmp_name'] );
+    if ( false === $contents ) {
+        $file['error'] = __( 'Could not read the uploaded SVG file.', 'headless' );
+        return $file;
+    }
+
+    // Decompress gzipped SVGs (.svgz) before sanitizing.
+    if ( str_ends_with( strtolower( $file['name'] ), '.svgz' ) ) {
+        $decoded = @gzdecode( $contents );
+        if ( false === $decoded ) {
+            $file['error'] = __( 'Could not decompress the SVGZ file.', 'headless' );
+            return $file;
+        }
+        $contents = $decoded;
+    }
+
+    $sanitizer = new \enshrined\svgSanitize\Sanitizer();
+    $clean     = $sanitizer->sanitize( $contents );
+
+    if ( false === $clean || empty( $clean ) ) {
+        $file['error'] = __( 'This SVG file could not be sanitized and was rejected.', 'headless' );
+        return $file;
+    }
+
+    // Write the sanitized content back.
+    file_put_contents( $file['tmp_name'], $clean );
+
+    return $file;
+} );
 
 
 // ---------------------------------------------------------------------------
