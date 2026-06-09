@@ -4,9 +4,8 @@
  *
  * CORS:
  *   Allows cross-origin REST API requests from known front-end origins.
- *   Exact-match allowlist + optional Vercel preview wildcard (*.vercel.app).
+ *   Exact-match allowlist only: localhost dev origins + the configured frontend_url.
  *   Unrecognised origins receive no Allow-Origin header (browser blocks them).
- *   Disable Vercel wildcard: add_filter('headless_cors_allow_vercel', '__return_false')
  *
  * Cache-Control:
  *   Public GET responses get s-maxage=60 / stale-while-revalidate=300 for CDN caching.
@@ -37,15 +36,8 @@ add_action( 'rest_api_init', function () {
 
         $is_allowed = in_array( $origin, $allowed_origins, true );
 
-        // Also allow Vercel preview deployments (https://*.vercel.app).
-        // Disable via: add_filter( 'headless_cors_allow_vercel', '__return_false' );
-        if ( ! $is_allowed && preg_match( '#^https://[a-zA-Z0-9-]+\.vercel\.app$#', $origin ) ) {
-            $is_allowed = (bool) apply_filters( 'headless_cors_allow_vercel', true, $origin );
-        }
-
         if ( $is_allowed ) {
             header( 'Access-Control-Allow-Origin: ' . esc_url_raw( $origin ) );
-            header( 'Access-Control-Allow-Credentials: true' );
         }
         // Unrecognised origins receive no Allow-Origin header (request blocked by browser).
 

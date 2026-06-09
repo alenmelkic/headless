@@ -9,10 +9,10 @@
  *  - headless_active_env                : 'dev' | 'staging' | 'prod'
  *  - headless_dev_frontend_url          : e.g. http://localhost:3000
  *  - headless_dev_revalidate_secret     : matches REVALIDATE_SECRET in .env.local
- *  - headless_staging_frontend_url      : e.g. https://staging.your-project.vercel.app
+ *  - headless_staging_frontend_url      : e.g. https://staging.example.com
  *  - headless_staging_revalidate_secret : matches REVALIDATE_SECRET in staging env vars
- *  - headless_prod_frontend_url         : e.g. https://your-project.vercel.app
- *  - headless_prod_revalidate_secret    : matches REVALIDATE_SECRET in Vercel env vars
+ *  - headless_prod_frontend_url         : e.g. https://example.com
+ *  - headless_prod_revalidate_secret    : matches REVALIDATE_SECRET in production env vars
  *  - headless_preview_secret            : shared, matches PREVIEW_SECRET in .env
  *
  * wp-config.php constants still work as hard overrides:
@@ -296,8 +296,8 @@ function headless_render_settings_page(): void {
 						<input type="url" id="headless_staging_frontend_url" name="headless_staging_frontend_url"
 							class="regular-text"
 							value="<?php echo esc_attr( get_option( 'headless_staging_frontend_url', '' ) ); ?>"
-							placeholder="https://staging.your-project.vercel.app" />
-						<p class="description"><?php esc_html_e( 'Your staging deployment URL.', 'headless' ); ?></p>
+							placeholder="https://staging.example.com" />
+						<p class="description"><?php esc_html_e( 'Your staging frontend URL.', 'headless' ); ?></p>
 					</td>
 				</tr>
 				<tr>
@@ -308,11 +308,11 @@ function headless_render_settings_page(): void {
 						<input type="text" id="headless_staging_revalidate_secret" name="headless_staging_revalidate_secret"
 							class="regular-text"
 							value="<?php echo esc_attr( get_option( 'headless_staging_revalidate_secret', '' ) ); ?>"
-							placeholder="<?php esc_attr_e( 'Paste REVALIDATE_SECRET from staging env vars', 'headless' ); ?>" />
+							placeholder="<?php esc_attr_e( 'Paste REVALIDATE_SECRET from your staging server env', 'headless' ); ?>" />
 						<p class="description">
 							<?php esc_html_e( 'Must match', 'headless' ); ?>
 							<code>REVALIDATE_SECRET</code>
-							<?php esc_html_e( 'in your staging environment variables.', 'headless' ); ?>
+							<?php esc_html_e( 'in your staging server environment variables.', 'headless' ); ?>
 						</p>
 					</td>
 				</tr>
@@ -332,8 +332,8 @@ function headless_render_settings_page(): void {
 						<input type="url" id="headless_prod_frontend_url" name="headless_prod_frontend_url"
 							class="regular-text"
 							value="<?php echo esc_attr( get_option( 'headless_prod_frontend_url', '' ) ); ?>"
-							placeholder="https://your-project.vercel.app" />
-						<p class="description"><?php esc_html_e( 'Your Vercel deployment URL.', 'headless' ); ?></p>
+							placeholder="https://example.com" />
+						<p class="description"><?php esc_html_e( 'Your production frontend URL.', 'headless' ); ?></p>
 					</td>
 				</tr>
 				<tr>
@@ -344,11 +344,11 @@ function headless_render_settings_page(): void {
 						<input type="text" id="headless_prod_revalidate_secret" name="headless_prod_revalidate_secret"
 							class="regular-text"
 							value="<?php echo esc_attr( get_option( 'headless_prod_revalidate_secret', '' ) ); ?>"
-							placeholder="<?php esc_attr_e( 'Paste REVALIDATE_SECRET from Vercel env vars', 'headless' ); ?>" />
+							placeholder="<?php esc_attr_e( 'Paste REVALIDATE_SECRET from your production server env', 'headless' ); ?>" />
 						<p class="description">
 							<?php esc_html_e( 'Must match', 'headless' ); ?>
 							<code>REVALIDATE_SECRET</code>
-							<?php esc_html_e( 'in your Vercel environment variables.', 'headless' ); ?>
+							<?php esc_html_e( 'in your production server environment variables.', 'headless' ); ?>
 						</p>
 					</td>
 				</tr>
@@ -369,7 +369,7 @@ function headless_render_settings_page(): void {
 							<input type="text" id="headless_preview_secret" name="headless_preview_secret"
 								class="regular-text"
 								value="<?php echo esc_attr( get_option( 'headless_preview_secret', '' ) ); ?>"
-								placeholder="<?php esc_attr_e( 'Paste PREVIEW_SECRET from .env', 'headless' ); ?>" />
+								placeholder="<?php esc_attr_e( 'Paste PREVIEW_SECRET from your server env', 'headless' ); ?>" />
 							<p class="description">
 								<?php esc_html_e( 'Must match', 'headless' ); ?>
 								<code>PREVIEW_SECRET</code>

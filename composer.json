@@ -1,0 +1,15 @@
+{
+    "name": "headless/theme",
+    "description": "Headless WordPress theme",
+    "type": "wordpress-theme",
+    "authors": [
+        {
+            "name": "Alen M",
+            "email": "alenmelkicx@gmail.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {
+        "enshrined/svg-sanitize": "^0.22.0"
+    }
+}

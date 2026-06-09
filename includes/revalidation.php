@@ -57,21 +57,37 @@ function headless_send_revalidation( array $payload ): void {
 // ---------------------------------------------------------------------------
 
 // Save / publish / status change.
-add_action( 'save_post', function ( int $post_id, WP_Post $post ): void {
-    if ( wp_is_post_autosave( $post_id ) || wp_is_post_revision( $post_id ) ) {
+// Only fire for posts that are (or were) published — drafts and private posts
+// have no frontend page to revalidate. The transition_post_status hook gives
+// us both old and new status so we also catch publish→draft transitions.
+add_action( 'transition_post_status', function ( string $new_status, string $old_status, WP_Post $post ): void {
+    if ( wp_is_post_autosave( $post->ID ) || wp_is_post_revision( $post->ID ) ) {
         return;
     }
+
+    // Only revalidate when at least one side of the transition is 'publish'.
+    if ( $new_status !== 'publish' && $old_status !== 'publish' ) {
+        return;
+    }
+
+    // Dedupe: skip if we already sent a revalidation for this post in this request.
+    static $fired = [];
+    $key = 'save:' . $post->ID;
+    if ( isset( $fired[ $key ] ) ) {
+        return;
+    }
+    $fired[ $key ] = true;
 
     headless_send_revalidation( [
         'type'      => 'post',
         'action'    => 'saved',
-        'post_id'   => $post_id,
+        'post_id'   => $post->ID,
         'post_type' => $post->post_type,
         'slug'      => $post->post_name,
-        'status'    => $post->post_status,
-        'permalink' => get_permalink( $post_id ),
+        'status'    => $new_status,
+        'permalink' => get_permalink( $post->ID ),
     ] );
-}, 10, 2 );
+}, 10, 3 );
 
 // Moved to trash.
 add_action( 'wp_trash_post', function ( int $post_id, string $previous_status ): void {
