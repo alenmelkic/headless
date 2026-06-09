@@ -113,8 +113,11 @@ while ( $query->have_posts() ) {
         'featuredImage' => $featured_image,
         'categories'    => $categories,
         'author'        => [
-            'name'   => esc_html( get_the_author() ),
-            'avatar' => $author_avatar,
+            'name'      => esc_html( get_the_author() ),
+            'firstName' => esc_html( get_the_author_meta( 'first_name' ) ),
+            'lastName'  => esc_html( get_the_author_meta( 'last_name' ) ),
+            'slug'      => sanitize_title( get_the_author_meta( 'user_nicename' ) ),
+            'avatar'    => $author_avatar,
         ],
     ];
 }
