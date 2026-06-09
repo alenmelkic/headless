@@ -67,6 +67,30 @@ while ( $query->have_posts() ) {
                 'width'     => (int) $src[1],
                 'height'    => (int) $src[2],
             ];
+
+            // Include amnext_* size metadata so the frontend can build srcsets
+            // from real WP-generated dimensions instead of deriving them.
+            $meta = wp_get_attachment_metadata( $thumb_id );
+            if ( ! empty( $meta['sizes'] ) ) {
+                $upload_dir = wp_get_upload_dir();
+                $base_dir   = trailingslashit( dirname( $meta['file'] ) );
+                $sizes_arr  = [];
+
+                foreach ( $meta['sizes'] as $name => $size_data ) {
+                    if ( str_starts_with( $name, 'amnext_' ) && ! empty( $size_data['file'] ) ) {
+                        $sizes_arr[] = [
+                            'name'      => $name,
+                            'sourceUrl' => esc_url( $upload_dir['baseurl'] . '/' . $base_dir . $size_data['file'] ),
+                            'width'     => (string) $size_data['width'],
+                            'height'    => (string) $size_data['height'],
+                        ];
+                    }
+                }
+
+                if ( $sizes_arr ) {
+                    $featured_image['mediaDetails'] = [ 'sizes' => $sizes_arr ];
+                }
+            }
         }
     }
 
