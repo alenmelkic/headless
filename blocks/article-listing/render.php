@@ -100,9 +100,10 @@ while ( $query->have_posts() ) {
     if ( $post_cats ) {
         foreach ( $post_cats as $cat ) {
             $categories[] = [
-                'id'   => (string) $cat->term_id,
-                'name' => esc_html( $cat->name ),
-                'slug' => sanitize_title( $cat->slug ),
+                'id'    => (string) $cat->term_id,
+                'name'  => esc_html( $cat->name ),
+                'slug'  => sanitize_title( $cat->slug ),
+                'color' => get_term_meta( $cat->term_id, 'category_color', true ) ?: null,
             ];
         }
     }

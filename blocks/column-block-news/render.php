@@ -17,10 +17,11 @@ for ( $n = 1; $n <= $num_columns; $n++ ) {
 	$number_of_posts = min( 12, max( 1, (int) ( get_field( "column_{$n}_number_of_posts" ) ?: 5 ) ) );
 
 	// Resolve the selected term and build query args.
-	$term_name = '';
-	$term_desc = '';
-	$term_slug = '';
-	$href      = '';
+	$term_name  = '';
+	$term_desc  = '';
+	$term_slug  = '';
+	$href       = '';
+	$term_color = null;
 	$query_args = [
 		'posts_per_page'         => $number_of_posts,
 		'post_status'            => 'publish',
@@ -37,10 +38,11 @@ for ( $n = 1; $n <= $num_columns; $n++ ) {
 			if ( $term_id ) {
 				$cat_obj = get_category( $term_id );
 				if ( $cat_obj && ! is_wp_error( $cat_obj ) ) {
-					$term_name = esc_html( $cat_obj->name );
-					$term_desc = esc_html( wp_strip_all_tags( $cat_obj->description ) );
-					$term_slug = sanitize_title( $cat_obj->slug );
-					$href      = '/kategorija/' . $term_slug;
+					$term_name  = esc_html( $cat_obj->name );
+					$term_desc  = esc_html( wp_strip_all_tags( $cat_obj->description ) );
+					$term_slug  = sanitize_title( $cat_obj->slug );
+					$href       = '/kategorija/' . $term_slug;
+					$term_color = get_term_meta( $cat_obj->term_id, 'category_color', true ) ?: null;
 				}
 			}
 			$query_args['post_type'] = 'post';
@@ -147,6 +149,7 @@ for ( $n = 1; $n <= $num_columns; $n++ ) {
 		'title'       => $term_name,
 		'description' => $term_desc,
 		'href'        => $href,
+		'color'       => $term_color,
 		'articles'    => $articles,
 	];
 }

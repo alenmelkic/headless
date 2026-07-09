@@ -99,9 +99,10 @@ while ( $query->have_posts() ) {
     if ( $post_cats ) {
         foreach ( $post_cats as $cat ) {
             $categories[] = [
-                'id'   => (string) $cat->term_id,
-                'name' => esc_html( $cat->name ),
-                'slug' => sanitize_title( $cat->slug ),
+                'id'    => (string) $cat->term_id,
+                'name'  => esc_html( $cat->name ),
+                'slug'  => sanitize_title( $cat->slug ),
+                'color' => get_term_meta( $cat->term_id, 'category_color', true ) ?: null,
             ];
         }
     }
@@ -128,11 +129,17 @@ while ( $query->have_posts() ) {
 }
 wp_reset_postdata();
 
+$category_color = null;
+if ( $category && isset( $cat_obj ) && $cat_obj && ! is_wp_error( $cat_obj ) ) {
+    $category_color = get_term_meta( $cat_obj->term_id, 'category_color', true ) ?: null;
+}
+
 $props = [
-    'categoryName' => $category_name,
-    'categoryDesc' => $category_desc,
-    'categorySlug' => $category_slug,
-    'articles'     => $articles,
+    'categoryName'  => $category_name,
+    'categoryDesc'  => $category_desc,
+    'categorySlug'  => $category_slug,
+    'categoryColor' => $category_color,
+    'articles'      => $articles,
 ];
 
 $block_id = ! empty( $block['anchor'] ) ? esc_attr( $block['anchor'] ) : $block['id'];
