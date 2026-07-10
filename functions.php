@@ -45,6 +45,7 @@ require_once get_template_directory() . '/includes/theme-settings.php'; // Theme
 require_once get_template_directory() . '/includes/marketing.php';      // Marketing: glavni banner + mali banneri
 require_once get_template_directory() . '/includes/author-image.php';  // Author profile image field + WPGraphQL
 require_once get_template_directory() . '/includes/revalidation.php';   // Next.js ISR revalidation webhook
-require_once get_template_directory() . '/includes/cron-cleanup.php';  // Auto-trash servisne posts older than 15 days
+require_once get_template_directory() . '/includes/cron-cleanup.php';   // Auto-trash servisne (30d) and obavijesti (41d) posts
+require_once get_template_directory() . '/includes/admin-redirect.php'; // Redirect admin.radiovkladusa.ba/ → wp-admin
 require_once get_template_directory() . '/includes/cookie-banner-settings.php'; // Cookie Banner admin page + WPGraphQL
 require_once get_template_directory() . '/includes/term-color.php';            // Category colour picker + WPGraphQL field

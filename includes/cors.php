@@ -36,6 +36,8 @@ add_action( 'rest_api_init', function () {
 
         $is_allowed = in_array( $origin, $allowed_origins, true );
 
+        header( 'Vary: Origin' );
+
         if ( $is_allowed ) {
             header( 'Access-Control-Allow-Origin: ' . esc_url_raw( $origin ) );
         }
@@ -58,6 +60,12 @@ add_action( 'rest_api_init', function () {
 
 add_filter( 'rest_post_dispatch', function ( WP_REST_Response $response, WP_REST_Server $server, WP_REST_Request $request ): WP_REST_Response {
     if ( $request->get_method() !== 'GET' ) {
+        return $response;
+    }
+
+    // Preview responses contain draft content — never cacheable.
+    if ( str_starts_with( $request->get_route(), '/headless/v1/preview' ) ) {
+        $response->header( 'Cache-Control', 'no-store' );
         return $response;
     }
 
