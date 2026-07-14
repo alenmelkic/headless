@@ -123,7 +123,7 @@ for ( $n = 1; $n <= $num_columns; $n++ ) {
 		$featured_image = null;
 		$thumb_id       = get_post_thumbnail_id( $pid );
 		if ( $thumb_id ) {
-			$img_src = wp_get_attachment_image_src( $thumb_id, 'medium' );
+			$img_src = wp_get_attachment_image_src( $thumb_id, 'full' );
 			$img_alt = get_post_meta( $thumb_id, '_wp_attachment_image_alt', true );
 			if ( $img_src ) {
 				$featured_image = [
@@ -132,6 +132,30 @@ for ( $n = 1; $n <= $num_columns; $n++ ) {
 					'height'    => (int) $img_src[2],
 					'altText'   => $img_alt ?: '',
 				];
+
+				// Include amnext_* size metadata so the frontend can build srcsets
+				// from real WP-generated dimensions instead of deriving them.
+				$meta = wp_get_attachment_metadata( $thumb_id );
+				if ( ! empty( $meta['sizes'] ) ) {
+					$upload_dir = wp_get_upload_dir();
+					$base_dir   = trailingslashit( dirname( $meta['file'] ) );
+					$sizes_arr  = [];
+
+					foreach ( $meta['sizes'] as $size_name => $size_data ) {
+						if ( str_starts_with( $size_name, 'amnext_' ) && ! empty( $size_data['file'] ) ) {
+							$sizes_arr[] = [
+								'name'      => $size_name,
+								'sourceUrl' => esc_url( $upload_dir['baseurl'] . '/' . $base_dir . $size_data['file'] ),
+								'width'     => (string) $size_data['width'],
+								'height'    => (string) $size_data['height'],
+							];
+						}
+					}
+
+					if ( $sizes_arr ) {
+						$featured_image['sizes'] = $sizes_arr;
+					}
+				}
 			}
 		}
 
