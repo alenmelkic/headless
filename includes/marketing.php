@@ -30,7 +30,7 @@ add_action( 'admin_menu', function () {
 	add_menu_page(
 		__( 'Marketing', 'headless' ),
 		__( 'Marketing', 'headless' ),
-		'manage_options',
+		'edit_headless_settings',
 		'headless-marketing',
 		'headless_marketing_render',
 		'dashicons-megaphone',
@@ -129,7 +129,7 @@ add_action( 'admin_enqueue_scripts', function ( string $hook ) {
 // ---------------------------------------------------------------------------
 
 function headless_marketing_render(): void {
-	if ( ! current_user_can( 'manage_options' ) ) {
+	if ( ! current_user_can( 'edit_headless_settings' ) ) {
 		return;
 	}
 

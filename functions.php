@@ -22,6 +22,7 @@ require_once get_template_directory() . '/vendor/autoload.php';
 require_once get_template_directory() . '/includes/cpt.php';       // Custom post types
 require_once get_template_directory() . '/includes/patterns.php';   // Block patterns
 require_once get_template_directory() . '/includes/theme.php';      // Theme setup, image sizes, editor restrictions
+require_once get_template_directory() . '/includes/editor-caps.php'; // Editor role: Marketing & Theme Settings access
 require_once get_template_directory() . '/includes/acf.php';        // ACF JSON sync, block auto-registration, options page
 
 // ---------------------------------------------------------------------------

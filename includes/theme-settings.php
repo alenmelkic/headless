@@ -55,7 +55,7 @@ add_action( 'admin_menu', function () {
 	add_menu_page(
 		__( 'Theme Settings', 'headless' ),
 		__( 'Theme Settings', 'headless' ),
-		'manage_options',
+		'edit_headless_settings',
 		'theme-settings',
 		'headless_theme_settings_render',
 		'dashicons-admin-appearance',
@@ -111,7 +111,7 @@ add_action( 'admin_enqueue_scripts', function ( string $hook ) {
 // ---------------------------------------------------------------------------
 
 function headless_theme_settings_render(): void {
-	if ( ! current_user_can( 'manage_options' ) ) {
+	if ( ! current_user_can( 'edit_headless_settings' ) ) {
 		return;
 	}
 
