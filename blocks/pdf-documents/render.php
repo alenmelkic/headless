@@ -14,6 +14,24 @@ $documents = get_field( 'documents' ) ?: [];
 
 $doc_data = [];
 foreach ( $documents as $doc ) {
+    $source = $doc['source'] ?? 'file';
+
+    if ( 'url' === $source ) {
+        $url = esc_url_raw( (string) ( $doc['external_url'] ?? '' ) );
+        $scheme = $url ? wp_parse_url( $url, PHP_URL_SCHEME ) : '';
+        if ( ! in_array( $scheme, [ 'http', 'https' ], true ) ) {
+            continue;
+        }
+        $doc_data[] = [
+            'title'    => (string) ( $doc['doc_title'] ?? '' ),
+            'url'      => $url,
+            'filename' => basename( (string) wp_parse_url( $url, PHP_URL_PATH ) ),
+            'filesize' => '',
+            'external' => true,
+        ];
+        continue;
+    }
+
     $file = $doc['file'] ?? null; // ACF file array: url, filename, filesize (formatted string), mime_type, etc.
     if ( ! $file || empty( $file['url'] ) ) {
         continue;
@@ -23,6 +41,7 @@ foreach ( $documents as $doc ) {
         'url'      => esc_url_raw( (string) $file['url'] ),
         'filename' => (string) ( $file['filename'] ?? '' ),
         'filesize' => (string) ( $file['filesize'] ?? '' ), // ACF returns formatted string, e.g. "200 kB"
+        'external' => false,
     ];
 }
 

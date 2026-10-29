@@ -48,19 +48,65 @@
                     "maxlength": ""
                 },
                 {
+                    "key": "field_pdf_doc_source",
+                    "label": "Izvor",
+                    "name": "source",
+                    "type": "button_group",
+                    "instructions": "",
+                    "required": 0,
+                    "conditional_logic": 0,
+                    "wrapper": { "width": "", "class": "", "id": "" },
+                    "choices": {
+                        "file": "Upload / Library",
+                        "url": "Link (drugi sajt)"
+                    },
+                    "default_value": "file",
+                    "return_format": "value",
+                    "allow_null": 0,
+                    "layout": "horizontal"
+                },
+                {
                     "key": "field_pdf_doc_file",
                     "label": "PDF File",
                     "name": "file",
                     "type": "file",
                     "instructions": "Upload a PDF file.",
                     "required": 1,
-                    "conditional_logic": 0,
+                    "conditional_logic": [
+                        [
+                            {
+                                "field": "field_pdf_doc_source",
+                                "operator": "!=",
+                                "value": "url"
+                            }
+                        ]
+                    ],
                     "wrapper": { "width": "", "class": "", "id": "" },
                     "return_format": "array",
                     "library": "all",
                     "min_size": "",
                     "max_size": "",
                     "mime_types": "pdf"
+                },
+                {
+                    "key": "field_pdf_doc_external_url",
+                    "label": "PDF link",
+                    "name": "external_url",
+                    "type": "url",
+                    "instructions": "Puni URL do PDF fajla (https://…/dokument.pdf).",
+                    "required": 1,
+                    "conditional_logic": [
+                        [
+                            {
+                                "field": "field_pdf_doc_source",
+                                "operator": "==",
+                                "value": "url"
+                            }
+                        ]
+                    ],
+                    "wrapper": { "width": "", "class": "", "id": "" },
+                    "default_value": "",
+                    "placeholder": "https://"
                 }
             ]
         }
@@ -83,5 +129,5 @@
     "active": true,
     "description": "",
     "show_in_rest": 0,
-    "modified": 1774310400
+    "modified": 1793282417
 }
