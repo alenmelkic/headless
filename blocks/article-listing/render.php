@@ -47,11 +47,39 @@ if ( $author ) {
     $query_args['author'] = (int) $author;
 }
 
-$query    = new WP_Query( $query_args );
+$query = new WP_Query( $query_args );
+
+// Servisne CPT — items explicitly tagged "dodaj-na-banner" are merged into
+// the listing and sorted by date together with regular posts.
+$servisne_query = new WP_Query( [
+    'post_type'      => 'servisne',
+    'posts_per_page' => $number_of_posts,
+    'post_status'    => 'publish',
+    'orderby'        => 'date',
+    'order'          => 'DESC',
+    'post__not_in'   => [ $post_id ],
+    'no_found_rows'  => true,
+    'tax_query'      => [
+        [
+            'taxonomy' => 'servisna-informacija',
+            'field'    => 'slug',
+            'terms'    => 'dodaj-na-banner',
+        ],
+    ],
+] );
+
+$merged = array_merge( $query->posts, $servisne_query->posts );
+usort(
+    $merged,
+    static fn( WP_Post $a, WP_Post $b ): int => strcmp( $b->post_date_gmt, $a->post_date_gmt )
+);
+$merged = array_slice( $merged, 0, $number_of_posts );
+
 $articles = [];
 
-while ( $query->have_posts() ) {
-    $query->the_post();
+global $post;
+foreach ( $merged as $post ) {
+    setup_postdata( $post );
     $pid       = get_the_ID();
     $thumb_id  = get_post_thumbnail_id( $pid );
     $author_id = (int) get_the_author_meta( 'ID' );
@@ -94,17 +122,20 @@ while ( $query->have_posts() ) {
         }
     }
 
-    // Resolve categories.
+    // Resolve categories. Servisne intentionally get an empty array — their
+    // taxonomy terms must never render as badges on the frontend.
     $categories = [];
-    $post_cats  = get_the_category( $pid );
-    if ( $post_cats ) {
-        foreach ( $post_cats as $cat ) {
-            $categories[] = [
-                'id'    => (string) $cat->term_id,
-                'name'  => esc_html( $cat->name ),
-                'slug'  => sanitize_title( $cat->slug ),
-                'color' => get_term_meta( $cat->term_id, 'category_color', true ) ?: null,
-            ];
+    if ( get_post_type( $pid ) !== 'servisne' ) {
+        $post_cats = get_the_category( $pid );
+        if ( $post_cats ) {
+            foreach ( $post_cats as $cat ) {
+                $categories[] = [
+                    'id'    => (string) $cat->term_id,
+                    'name'  => esc_html( $cat->name ),
+                    'slug'  => sanitize_title( $cat->slug ),
+                    'color' => get_term_meta( $cat->term_id, 'category_color', true ) ?: null,
+                ];
+            }
         }
     }
 
@@ -183,6 +214,9 @@ if ( $author ) {
     if ( $user_obj ) {
         $filter_parts[] = 'Autor: ' . $user_obj->display_name;
     }
+}
+if ( $servisne_query->post_count ) {
+    $filter_parts[] = 'Servisne (dodaj-na-banner): ' . $servisne_query->post_count;
 }
 $filter_label = $filter_parts ? implode( ' + ', $filter_parts ) : 'Svi članci';
 ?>

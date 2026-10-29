@@ -75,6 +75,7 @@ function headless_get_global_options(): WP_REST_Response {
         'logo_alt'   => (string) get_option( 'headless_theme_logo_alt',   '' ),
         'logo_width' => (int) get_option( 'headless_theme_logo_width', 120 ),
         'favicon'    => headless_theme_resolve_image( (int) get_option( 'headless_theme_favicon_id', 0 ) ),
+        'og_default' => headless_theme_resolve_image( (int) get_option( 'headless_theme_og_default_id', 0 ) ),
         'clarity_id' => (string) get_option( 'headless_theme_clarity_id', '' ),
         'ga_id'          => (string) get_option( 'headless_theme_ga_id',           '' ),
         'related_source'    => (string) get_option( 'headless_theme_related_source', 'category' ),

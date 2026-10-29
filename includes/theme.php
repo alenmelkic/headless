@@ -242,6 +242,33 @@ add_filter( 'allowed_block_types_all', function ( array|bool $allowed, WP_Block_
 
 
 // ---------------------------------------------------------------------------
+// Limit image blocks — max 3 per post (new posts only, created 2026-07-27+)
+// ---------------------------------------------------------------------------
+
+add_action( 'enqueue_block_editor_assets', function () {
+    global $post;
+    if ( ! $post ) {
+        return;
+    }
+
+    $cutoff = '2026-07-28';
+    $exempt = $post->post_date && $post->post_date < $cutoff && $post->post_status !== 'auto-draft';
+
+    wp_enqueue_script(
+        'headless-image-block-limit',
+        get_template_directory_uri() . '/assets/js/image-block-limit.js',
+        [ 'wp-data', 'wp-editor', 'wp-notices', 'wp-hooks' ],
+        filemtime( get_template_directory() . '/assets/js/image-block-limit.js' ),
+        true
+    );
+
+    wp_localize_script( 'headless-image-block-limit', 'headlessImageLimit', [
+        'exempt' => $exempt,
+    ] );
+} );
+
+
+// ---------------------------------------------------------------------------
 // WPGraphQL — readingTime field on all content types
 //
 // Computed server-side from full post content so every query (list and single)

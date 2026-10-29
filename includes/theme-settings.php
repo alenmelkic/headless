@@ -11,6 +11,7 @@
  *   headless_theme_logo_alt     — alt text (string)
  *   headless_theme_logo_width   — display width in px (int, default 120)
  *   headless_theme_favicon_id   — attachment ID (int)
+ *   headless_theme_og_default_id — default social share (og:image) attachment ID (int)
  *   headless_theme_clarity_id — Microsoft Clarity project ID (string)
  *   headless_theme_ga_id      — Google Analytics 4 measurement ID (string)
  *
@@ -74,6 +75,7 @@ add_action( 'admin_init', function () {
 	register_setting( 'headless_theme_logo_group',      'headless_theme_logo_alt',     [ 'sanitize_callback' => 'sanitize_text_field' ] );
 	register_setting( 'headless_theme_logo_group',      'headless_theme_logo_width',   [ 'sanitize_callback' => 'absint', 'default' => 120 ] );
 	register_setting( 'headless_theme_logo_group',      'headless_theme_favicon_id',   [ 'sanitize_callback' => 'absint' ] );
+	register_setting( 'headless_theme_logo_group',      'headless_theme_og_default_id', [ 'sanitize_callback' => 'absint' ] );
 	register_setting( 'headless_theme_analytics_group', 'headless_theme_clarity_id', [ 'sanitize_callback' => 'sanitize_text_field' ] );
 	register_setting( 'headless_theme_analytics_group', 'headless_theme_ga_id',      [ 'sanitize_callback' => 'sanitize_text_field' ] );
 	register_setting( 'headless_theme_article_group',   'headless_theme_related_source', [
@@ -125,6 +127,7 @@ function headless_theme_settings_render(): void {
 	$logo_alt     = (string) get_option( 'headless_theme_logo_alt',     '' );
 	$logo_width   = (int) get_option( 'headless_theme_logo_width',   120 );
 	$favicon_id   = (int) get_option( 'headless_theme_favicon_id',   0 );
+	$og_default_id = (int) get_option( 'headless_theme_og_default_id', 0 );
 	$clarity_id      = (string) get_option( 'headless_theme_clarity_id', '' );
 	$ga_id           = (string) get_option( 'headless_theme_ga_id',      '' );
 	$related_source  = (string) get_option( 'headless_theme_related_source', 'category' );
@@ -136,6 +139,7 @@ function headless_theme_settings_render(): void {
 	$logo_src      = $logo_id      ? wp_get_attachment_image_url( $logo_id,      'medium' )    : '';
 	$logo_dark_src = $logo_dark_id ? wp_get_attachment_image_url( $logo_dark_id, 'medium' )    : '';
 	$favicon_src   = $favicon_id   ? wp_get_attachment_image_url( $favicon_id,   'thumbnail' ) : '';
+	$og_default_src = $og_default_id ? wp_get_attachment_image_url( $og_default_id, 'medium' ) : '';
 
 	$base = admin_url( 'admin.php?page=theme-settings' );
 	?>
@@ -215,6 +219,13 @@ function headless_theme_settings_render(): void {
 					<td>
 						<?php headless_media_field( 'headless_theme_favicon_id', $favicon_id, $favicon_src, 'Select Favicon', 'max-width:64px;max-height:64px' ); ?>
 						<p class="description"><?php esc_html_e( 'Recommended: 32×32 px (ICO or PNG).', 'headless' ); ?></p>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><?php esc_html_e( 'Default social slika', 'headless' ); ?></th>
+					<td>
+						<?php headless_media_field( 'headless_theme_og_default_id', $og_default_id, $og_default_src, 'Odaberi sliku', 'max-width:300px;max-height:158px' ); ?>
+						<p class="description"><?php esc_html_e( 'Prikazuje se pri dijeljenju na Facebooku i drugim mrežama kada članak ili stranica nema istaknutu sliku. Preporuka: 1200×630 px, JPG.', 'headless' ); ?></p>
 					</td>
 				</tr>
 			</table>
@@ -426,6 +437,7 @@ add_action( 'graphql_register_types', function () {
 			'logoAlt'   => [ 'type' => 'String',             'description' => __( 'Logo alt text override.',               'headless' ) ],
 			'logoWidth' => [ 'type' => 'Int',                'description' => __( 'Logo display width in pixels.',         'headless' ) ],
 			'favicon'   => [ 'type' => 'ThemeSettingsImage', 'description' => __( 'Site favicon.',                         'headless' ) ],
+			'ogDefault' => [ 'type' => 'ThemeSettingsImage', 'description' => __( 'Default social share image (og:image fallback).', 'headless' ) ],
 			'clarityId' => [ 'type' => 'String',             'description' => __( 'Microsoft Clarity project ID.',         'headless' ) ],
 			'gaId'           => [ 'type' => 'String',             'description' => __( 'Google Analytics 4 measurement ID.',    'headless' ) ],
 			'relatedSource'     => [ 'type' => 'String',              'description' => __( 'Related posts source: "category" or "tags".', 'headless' ) ],
@@ -443,6 +455,7 @@ add_action( 'graphql_register_types', function () {
 				'logoAlt'   => (string) get_option( 'headless_theme_logo_alt',   '' ),
 				'logoWidth' => (int) get_option( 'headless_theme_logo_width', 120 ),
 				'favicon'   => headless_theme_resolve_image( (int) get_option( 'headless_theme_favicon_id', 0 ) ),
+				'ogDefault' => headless_theme_resolve_image( (int) get_option( 'headless_theme_og_default_id', 0 ) ),
 				'clarityId' => (string) get_option( 'headless_theme_clarity_id', '' ),
 				'gaId'           => (string) get_option( 'headless_theme_ga_id',           '' ),
 				'relatedSource'     => (string) get_option( 'headless_theme_related_source', 'category' ),

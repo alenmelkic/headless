@@ -50,3 +50,4 @@ require_once get_template_directory() . '/includes/cron-cleanup.php';   // Auto-
 require_once get_template_directory() . '/includes/admin-redirect.php'; // Redirect admin.radiovkladusa.ba/ → wp-admin
 require_once get_template_directory() . '/includes/cookie-banner-settings.php'; // Cookie Banner admin page + WPGraphQL
 require_once get_template_directory() . '/includes/term-color.php';            // Category colour picker + WPGraphQL field
+require_once get_template_directory() . '/includes/seo-auto.php';              // Automatski meta description (post, page)
