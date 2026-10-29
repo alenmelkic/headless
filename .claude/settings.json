@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "model": "opusplan",
+  "effortLevel": "medium",
+  "env": {
+    "CLAUDE_CODE_SUBAGENT_MODEL": "sonnet",
+    "BASH_MAX_OUTPUT_LENGTH": "20000"
+  },
+  "permissions": {
+    "additionalDirectories": [
+      "C:/Users/Alen/source/repos/rvkweb"
+    ],
+    "allow": [
+      "Bash(/c/xampp/php/php.exe -l:*)",
+      "Bash(php -l:*)",
+      "Bash(curl -s:*)",
+      "Bash(curl.exe -s:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git show:*)",
+      "Bash(git branch:*)",
+      "Bash(node -e:*)",
+      "WebFetch(domain:developer.wordpress.org)",
+      "WebFetch(domain:make.wordpress.org)",
+      "WebFetch(domain:www.wpgraphql.com)",
+      "WebFetch(domain:www.advancedcustomfields.com)",
+      "mcp__plugin_context7_context7__resolve-library-id",
+      "mcp__plugin_context7_context7__query-docs"
+    ],
+    "ask": [
+      "Bash(git push:*)",
+      "Bash(ssh:*)",
+      "Bash(rm -rf:*)",
+      "Bash(/c/xampp/php/php.exe composer.phar:*)"
+    ],
+    "deny": [
+      "Read(./vendor/**)",
+      "Read(./composer.phar)",
+      "Read(./composer.lock)",
+      "Read(./screenshot.png)",
+      "Bash(git push --force:*)",
+      "Bash(git push -f:*)",
+      "Bash(git reset --hard:*)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/post-edit-check.mjs\"",
+            "timeout": 20
+          }
+        ]
+      }
+    ]
+  }
+}
