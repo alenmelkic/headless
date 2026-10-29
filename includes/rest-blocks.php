@@ -111,6 +111,11 @@ function headless_parse_blocks_recursive( array $blocks ): array {
 
             $entry['attrs']['alt'] = get_post_meta( $att_id, '_wp_attachment_image_alt', true ) ?: '';
 
+            $credit = headless_get_photo_credit( $att_id );
+            if ( $credit !== '' ) {
+                $entry['attrs']['credit'] = $credit;
+            }
+
             // Caption, href, and linkTarget are only in the rendered HTML.
             if ( preg_match( '/<figcaption[^>]*>(.*?)<\/figcaption>/s', $entry['html'], $m ) ) {
                 $entry['attrs']['caption'] = $m[1];
