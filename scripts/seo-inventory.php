@@ -12,6 +12,12 @@
  * @package Headless
  */
 
+// Samo za WP-CLI / php CLI — nikad preko HTTP-a.
+if ( PHP_SAPI !== 'cli' ) {
+	http_response_code( 404 );
+	exit;
+}
+
 // Bootstrap kada se ne pokreće kroz wp-cli.
 if ( ! defined( 'ABSPATH' ) ) {
 	$root = dirname( __DIR__, 4 ); // themes/headless/scripts -> public/

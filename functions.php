@@ -24,6 +24,8 @@ require_once get_template_directory() . '/includes/patterns.php';   // Block pat
 require_once get_template_directory() . '/includes/theme.php';      // Theme setup, image sizes, editor restrictions
 require_once get_template_directory() . '/includes/editor-caps.php'; // Editor role: Marketing & Theme Settings access
 require_once get_template_directory() . '/includes/acf.php';        // ACF JSON sync, block auto-registration, options page
+// Hide users from public REST/GraphQL, block author enumeration
+require_once get_template_directory() . '/includes/security.php';
 
 // ---------------------------------------------------------------------------
 // REST API

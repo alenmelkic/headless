@@ -10,6 +10,12 @@
  * @package Headless
  */
 
+// Samo za WP-CLI / php CLI — nikad preko HTTP-a.
+if ( PHP_SAPI !== 'cli' ) {
+	http_response_code( 404 );
+	exit;
+}
+
 if ( ! defined( 'ABSPATH' ) ) {
 	$root = dirname( __DIR__, 4 ); // themes/headless/scripts -> public/
 	require_once $root . '/wp-load.php';

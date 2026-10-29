@@ -23,6 +23,7 @@ includes/rest-seo.php      — GET /headless/v1/seo/{id}
 includes/rest-preview.php  — Draft preview redirect + token verification
 includes/rest-soundcloud.php — GET /headless/v1/soundcloud/tracks
 includes/revalidation.php  — Next.js ISR revalidation webhook (fires on every content change)
+includes/security.php      — Hides users from public REST/GraphQL, blocks author enumeration
 blocks/                    — Custom blocks (one folder per block)
   {name}/
     block.json             — Block manifest (required)
@@ -32,6 +33,8 @@ blocks/                    — Custom blocks (one folder per block)
     editor.asset.php       — Script dependency manifest (only with editor.js)
 acf-json/                  — ACF field group JSON (auto-synced, committed to version control)
 ```
+
+Scripts in `scripts/` run only through the CLI (`wp eval-file` / `php`); over HTTP they return 404.
 
 ---
 
